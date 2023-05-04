@@ -1,0 +1,40 @@
+{% extends "base.html" %} {% block content %}
+<h1 class="text-center">{{ header }}</h1>
+<hr />
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+  {% for torrent in torrents %}
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title">{{ torrent.file_name|truncate }}</h6>
+
+        <p class="card-text">
+          <b>Hash</b>: {{ torrent.hash }}<br />
+          <b>Timestamp</b>: {{ torrent.timestamp }}<br />
+          <b>Block</b>: {{ torrent.block_number }}<br />
+          <b>Category</b>: {{ torrent.category }}<br />
+          <b>Submitted by</b>:
+          <a href="https://peakd.com/@{{ torrent.submitted_by }}"
+            >{{ torrent.submitted_by }}</a
+          >
+        </p>
+
+        <p class="card-text">
+          <b>Magnet</b>:
+          <a
+            href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name}}&tr={{torrent.announce_url}}"
+          >
+            Link
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="pagination justify-content-center">{{ pagination.links }}</div>
+
+<script src="/static/js/torrents.js"></script>
+{% endblock %}
