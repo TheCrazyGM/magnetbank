@@ -16,7 +16,7 @@ logging.basicConfig(
     datefmt="%m/%d/%Y %I:%M:%S %p",
 )
 logger = logging.getLogger("MagnetBank Node")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Load environment variables
 load_dotenv()
@@ -186,7 +186,7 @@ def main():
             last_block = get_last_block()
             # Calculate the difference between the head block and the last block
             difference = head_block - last_block
-            logger.debug(
+            logger.info(
                 f"Current block: {head_block} Last block: {last_block} Difference: {difference}"
             )
             # Process blocks in batches of 1000
