@@ -14,10 +14,10 @@ pycryptodomex==3.17
 pymongo==4.3.3
 python-dotenv==1.0.0
 pytz==2023.3
-requests==2.29.0
+requests==2.30.0
 ruamel.yaml==0.17.22
 scrypt==0.8.20
 six==1.16.0
-urllib3==1.26.15
+urllib3==2.0.2
 wcwidth==0.2.6
 websocket-client==1.5.1

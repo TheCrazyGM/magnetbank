@@ -21,6 +21,9 @@ logger.setLevel(logging.DEBUG)
 # Load environment variables
 load_dotenv()
 
+# Admin account for DMCA takedown and Changes to categories
+ADMIN_ACCOUNT = os.getenv("ADMIN_ACCOUNT")
+
 # Connect to MongoDB
 mongo_db = os.getenv("MONGO_DB")
 client = MongoClient(mongo_db)
@@ -69,6 +72,63 @@ def set_block(key, value):
     settings_collection.update_one({"id": 1}, {"$set": {key: value}}, upsert=True)
 
 
+def process_custom_json_operation(block, operation):
+    """
+    Process a MagnetBank custom JSON operation.
+
+    Args:
+    ----
+    block (beem.block.Block): The block containing the operation.
+    operation (dict): The custom JSON operation.
+    """
+    time = block["timestamp"].isoformat()
+    number = block.block_num
+    submitted_by = operation["value"]["required_posting_auths"][0]
+    json_data = json.loads(operation["value"]["json"])
+    # Check if the data is well-formed
+    if all(
+        key in json_data for key in ["hash", "file_name", "category", "announce_url"]
+    ):
+        # Add additional data to the JSON object
+        json_data.update(
+            {
+                "timestamp": time,
+                "submitted_by": submitted_by,
+                "block_number": number,
+            }
+        )
+        # Check if the hash key already exists in the database
+        if torrents_collection.find_one({"hash": json_data["hash"]}) is None:
+            # If the hash key does not exist, add the JSON object to the database
+            logger.info(
+                f"Hash key {json_data['hash']} added to database - {json_data['file_name']} by {json_data['submitted_by']}"
+            )
+            torrents_collection.insert_one(json_data)
+        else:
+            # If the hash key already exists, log a warning
+            logger.warning(
+                f"Hash key {json_data['hash']} already exists in the database."
+            )
+    elif all(
+        key in json_data for key in ["action", "hash"] and submitted_by == ADMIN_ACCOUNT
+    ):
+        if json_data.get("action") == "change":
+            torrents_collection.update_one(
+                {"hash": json_data["hash"]},
+                {"$set": {"category": json_data["category"]}},
+                upsert=True,
+            )
+            logger.info(
+                f"Hash key {json_data['hash']} changed to {json_data['category']} by submitted_by"
+            )
+        if json_data.get("action") == "delete":
+            torrents_collection.delete_one({"hash": json_data["hash"]})
+            logger.info(f"Hash key {json_data['hash']} deleted by submitted_by")
+    else:
+        # If the data is not well-formed, log a warning
+        logger.warning("Malformed data received.")
+
+
 def process_blocks(start_block):
     """
     Process blocks starting from a given block number.
@@ -89,44 +149,27 @@ def process_blocks(start_block):
                 operation["type"] == "custom_json_operation"
                 and operation["value"]["id"] == "MagnetBank"
             ):
-                # Extract data from the custom JSON operation
-                time = block["timestamp"].isoformat()
-                number = block.block_num
-                submitted_by = operation["value"]["required_posting_auths"][0]
-                json_data = json.loads(operation["value"]["json"])
-                # Check if the data is well-formed
-                if all(
-                    key in json_data
-                    for key in ["hash", "file_name", "category", "announce_url"]
-                ):
-                    # Add additional data to the JSON object
-                    json_data.update(
-                        {
-                            "timestamp": time,
-                            "submitted_by": submitted_by,
-                            "block_number": number,
-                        }
-                    )
-                    # Check if the hash key already exists in the database
-                    if (
-                        torrents_collection.find_one({"hash": json_data["hash"]})
-                        is None
-                    ):
-                        # If the hash key does not exist, add the JSON object to the database
-                        logger.info(
-                            f"Hash key {json_data['hash']} added to database - {json_data['file_name']} by {json_data['submitted_by']}"
-                        )
-                        torrents_collection.insert_one(json_data)
-                    else:
-                        # If the hash key already exists, log a warning
-                        logger.warning(
-                            f"Hash key {json_data['hash']} already exists in the database."
-                        )
-                else:
-                    # If the data is not well-formed, log a warning
-                    logger.warning("Malformed data received.")
-            # Update the last block number in the settings collection
-            set_block("last_block", last_block)
+                process_custom_json_operation(block, operation)
+        # Update the last block number in the settings collection
+        set_block("last_block", last_block)
+
+
+def process_blocks_in_batches(start_block, end_block):
+    """
+    Process blocks in batches of 1000.
+
+    Args:
+    ----
+    start_block (int): The block number to start processing from.
+    end_block (int): The block number to stop processing at.
+    """
+    rounds = (end_block - start_block) // 1000 + 1
+    for r in range(rounds):
+        logger.debug(
+            f"Round {r+1}/{rounds} from block {start_block+1} to block {min(start_block+1000, end_block)}"
+        )
+        process_blocks(start_block)
+        start_block = min(start_block + 1000, end_block)
 
 
 def main():
@@ -147,14 +190,7 @@ def main():
                 f"Current block: {head_block} Last block: {last_block} Difference: {difference}"
             )
             # Process blocks in batches of 1000
-            rounds = (difference // 1000) + 1
-            for r in range(rounds):
-                logger.debug(
-                    f"Round {r+1}/{rounds} from block {last_block+1} to block {min(last_block+1000, head_block)}"
-                )
-                start_block = last_block + 1
-                process_blocks(start_block)
-                last_block = min(last_block + 1000, head_block)
+            process_blocks_in_batches(last_block, head_block)
             # Wait for the specified amount of time before processing the next batch of blocks
             sleep_time = float(os.getenv("SLEEP_TIME"))
             time.sleep(sleep_time)
