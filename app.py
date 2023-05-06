@@ -234,6 +234,19 @@ def about():
     )
 
 
+@app.route("/admin")
+def admin():
+    """
+    Render the admin page with access to manage the application.
+
+    Returns
+    -------
+    Rendered HTML template with access to manage the application.
+    """
+    # Render HTML template with information about the application
+    return render_template("admin.html")
+
+
 # Define API routes for exporting torrent data
 @app.route("/api/json/<q>")
 def export_json(q=None):
