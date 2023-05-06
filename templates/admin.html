@@ -1,0 +1,152 @@
+{% extends "base.html" %} {% block content %}
+<h1 class="text-center">Admin Panel</h1>
+
+<hr />
+<div class="container">
+  <div
+    id="msg"
+    class="alert alert-danger' if msg else 'alert alert-success'"
+    role="alert"
+  >
+    {{ msg }}
+  </div>
+
+        <button
+          type="submit"
+          class="btn btn-outline-success"
+          id="send_signature"
+        >
+          Sign
+        </button>
+      <form id="admin_form" style="display: none">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input
+            type="text"
+            id="username"
+            class="form-control"
+            value="magnetbank"
+            readonly
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="custom_action" class="form-label">Action</label>
+          <select id="custom_action" class="form-control">
+            <option value="update">Update</option>
+            <option value="delete">Delete</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="hash" class="form-label">Hash</label>
+          <input
+            type="text"
+            id="hash"
+            class="form-control"
+            placeholder="Hash"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="category" class="form-label">Category</label>
+          <select
+            class="form-select form-control"
+            id="category"
+            name="category"
+            required
+          >
+            <option value=""></option>
+            <option value="MOVIE">MOVIE</option>
+            <option value="TV">TV</option>
+            <option value="MUSIC">MUSIC</option>
+            <option value="AUDIO">AUDIO</option>
+            <option value="APP">APP</option>
+            <option value="GAME">GAME</option>
+            <option value="PORN">PORN</option>
+            <option value="TEXT">TEXT</option>
+            <option value="OTHER">OTHER</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="custom_json" class="form-label">Custom JSON</label>
+          <textarea
+            id="custom_json"
+            class="form-control"
+            placeholder="JSON"
+            required
+            rows="5"
+          ></textarea>
+        </div>
+
+        <button type="button" class="btn btn-outline-success" id="send_custom">
+          Send Request
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  let signatureSent = false; // flag to indicate if signature was sent successfully
+
+  $("#send_signature").click(function () {
+    hive_keychain.requestSignBuffer(
+      $("#username").val().length ? $("#username").val() : null,
+      "Admin Panel",
+      "Active",
+      function (response) {
+        console.log("sign");
+        console.log(response);
+        signatureSent = true; // set flag to true on successful signature
+        $("#admin_form").show(); // show the admin form
+        $("#send_signature").hide(); // hide the send signature button
+      },
+      null,
+      "Signature"
+    );
+  });
+  // Update custom_json textarea with JSONified data
+  function updateCustomJson() {
+    const action = $("#custom_action").val();
+    const hash = $("#hash").val();
+    const category = $("#category").val();
+    const customJson = JSON.stringify({ action, hash, category });
+    $("#custom_json").val(customJson);
+  }
+
+  // Add event listeners to input fields
+  $("#custom_action").on("change", updateCustomJson);
+  $("#hash").on("input", updateCustomJson);
+  $("#category").on("input", updateCustomJson);
+
+  // Send Custom JSON request
+  $("#send_custom").on("click", function () {
+    try {
+      const customJson = JSON.parse($("#custom_json").val()); // convert to JSON object
+      const jsonifiedCustomJson = JSON.stringify(customJson); // convert to JSON string
+      hive_keychain.requestCustomJson(
+        $("#username").val(),
+        "MagnetBank",
+        "Posting",
+        jsonifiedCustomJson, // use the JSON string
+        "Admin Changes",
+        function (response) {
+          console.log(response);
+          $("#msg")
+            .removeClass("alert-danger")
+            .addClass("alert-success")
+            .text(response.message);
+        }
+      );
+    } catch (error) {
+      console.error(error);
+      $("#msg")
+        .removeClass("alert-success")
+        .addClass("alert-danger")
+        .text("Error: " + error.message);
+    }
+  });
+
+  // Hide admin form initially
+  $("#admin_form").hide();
+</script>
+{% endblock %}
