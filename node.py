@@ -16,7 +16,7 @@ logging.basicConfig(
     datefmt="%m/%d/%Y %I:%M:%S %p",
 )
 logger = logging.getLogger("MagnetBank Node")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # Load environment variables
 load_dotenv()
@@ -109,9 +109,7 @@ def process_custom_json_operation(block, operation):
             logger.warning(
                 f"Hash key {json_data['hash']} already exists in the database."
             )
-    elif all(
-        key in json_data for key in ["action", "hash"] and submitted_by == ADMIN_ACCOUNT
-    ):
+    elif json_data.get("action") and submitted_by == ADMIN_ACCOUNT:
         if json_data.get("action") == "update":
             torrents_collection.update_one(
                 {"hash": json_data["hash"]},
