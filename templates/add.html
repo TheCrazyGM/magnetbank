@@ -1,0 +1,102 @@
+{% extends "base.html" %} {% block content %}
+<h1 class="text-center">Add Magnet Link</h1>
+<hr class="mb-4" />
+
+<div class="container">
+  {% if msg %}
+  <div
+    id="msg"
+    class="alert alert-{{ 'success' if magnet else 'danger' }}"
+    role="alert"
+  >
+    {{ msg }}
+  </div>
+  {% endif %} {% if not magnet %}
+  <form method="GET" action="{{ url_for('add') }}">
+    <div class="row mb-2 mt-2">
+      <div class="col-2">
+        <label for="magnet" class="form-label">Magnet:</label>
+      </div>
+      <div class="col-10">
+        <input
+          type="text"
+          class="form-control"
+          id="magnet"
+          name="magnet"
+          placeholder="Magnet"
+          required
+        />
+      </div>
+    </div>
+    <div class="row mb-2 mt-2">
+      <div class="col-2">
+        <label for="category" class="form-label">Category:</label>
+      </div>
+      <div class="col-auto">
+        <select class="form-select" id="category" name="category" required>
+          <option value=""></option>
+          <option value="MOVIE">MOVIE</option>
+          <option value="TV">TV</option>
+          <option value="MUSIC">MUSIC</option>
+          <option value="APP">APP</option>
+          <option value="GAME">GAME</option>
+          <option value="PORN">PORN</option>
+          <option value="OTHER">OTHER</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-success">
+          Add Magnet
+        </button>
+      </div>
+    </div>
+  </form>
+  {% endif %} {% if torrent_json %} {% if magnet %}
+  <h3>Submission of Custom JSON via Hive Keychain</h3>
+
+  <div class="row">
+    <div class="col-12 mb-2">
+      <textarea class="form-control" rows="6" id="custom_json" disabled>
+              {
+                "file_name": "{{torrent_json.file_name}}",
+                "hash": "{{torrent_json.hash}}",
+                "announce_url": "{{torrent_json.announce_url|safe}}",
+                "category": "{{category}}"
+              }
+            </textarea
+      >
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-12">
+      <p>
+        Kindly ensure that the information provided is accurate and that the
+        category selected is appropriate for the torrent. Once the data is
+        recorded on the blockchain, it cannot be reversed.
+      </p>
+      <p>
+        It may take a few minutes for the node to incorporate the magnet. Please
+        refrain from submitting duplicate entries.
+      </p>
+    </div>
+    <div class="col-6">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="username"
+        id="custom_username"
+        value="username"
+      />
+    </div>
+    <div class="col-6">
+      <button type="button" class="btn btn-outline-success" id="send_custom">
+        Send Custom JSON
+      </button>
+    </div>
+  </div>
+  {% endif %} {% endif %}
+</div>
+
+<script src="/static/js/keychain.js"></script>
+{% endblock %}

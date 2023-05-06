@@ -1,0 +1,61 @@
+{% extends "base.html" %} {% block content %}
+<div class="container my-5">
+  <h1 class="text-center">About MagnetBank</h1>
+  <hr class="mb-4" />
+
+  <div class="row">
+    <div class="col-md-6">
+      <h2>What is this?</h2>
+      <p>
+        At MagnetBank, we understand the importance of privacy and security when
+        it comes to accessing torrent metadata. That's why we only store the
+        hash, filename, and announce URL of each torrent. This means that there
+        are no actual torrents or magnet links stored on our platform.
+      </p>
+
+      <p>
+        Our links are generated dynamically, ensuring that users have access to
+        the most up-to-date announce URLs from a public list.
+      </p>
+    </div>
+
+    <div class="col-md-6">
+      <h2>Current Status</h2>
+      <p>Current total: <strong>{{ total_torrents }}</strong> magnet links.</p>
+
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Node Current</th>
+            <th>Node Last Head</th>
+            <th>Actual Head</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ latest_info.last_block }}</td>
+            <td>{{ latest_info.head_block }}</td>
+            <td>{{ current_head_block }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {% set progress_percentage = ((latest_info.last_block-latest_info.genisys)
+      / (current_head_block-latest_info.genisys) * 100) | round(2) %}
+      <div class="progress">
+        <div
+          class="progress-bar"
+          role="progressbar"
+          style="width: {{ progress_percentage }}%;"
+          aria-valuenow="{{ progress_percentage }}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          {{ progress_percentage }}%
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
