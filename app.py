@@ -69,6 +69,23 @@ def index(category=None):
     )
 
 
+@app.route("/category/<category>/<filename>")
+def serve_torrent(category, filename):
+    """
+    Serve the torrent file with the given filename in the specified category.
+    """
+    # Define query to find torrent with matching category and filename
+    query = {
+        "category": category.upper(),
+        "$or": [{"file_name": filename}, {"hash": filename}],
+    }
+    # Find the torrent in the database
+    torrent = collection.find_one(query, {"_id": False})
+
+    # Render HTML template with torrent details
+    return render_template("details.html", torrent=torrent)
+
+
 # Define route for adding a new torrent
 @app.route("/add")
 def add(category=None):
@@ -98,10 +115,9 @@ def add(category=None):
             magnet_parts = magnet.split("&")
             info_hash = magnet_parts[0].split(":")[3]
             file_name = urllib.parse.unquote(magnet_parts[1].split("=")[1])
-            announce_urls = [
+            if announce_urls := [
                 url.split("=")[1] for url in magnet_parts if url.startswith("tr=")
-            ]
-            if announce_urls:
+            ]:
                 random_announce_url = random.choice(announce_urls)
                 random_announce_url = (
                     "http://tracker.openbittorrent.com:80/announce"
