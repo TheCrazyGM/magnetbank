@@ -1,6 +1,9 @@
 import hashlib
 
 import bencode
+import requests
+
+from config import settings
 
 
 def generate_magnet_link(torrent_file):
@@ -21,3 +24,23 @@ def generate_magnet_link(torrent_file):
     info_hash = hashlib.sha1(bencode.bencode(torrent_info["info"])).hexdigest()
     # Construct the magnet link using the info hash, name, and tracker URL
     return f"magnet:?xt=urn:btih:{info_hash}&dn={torrent_info['info']['name']}&tr={torrent_info.get('announce')}"
+
+
+def update_announce_urls():
+    """
+    Return a list of available tracker URLs as a JSON response.
+
+    Returns
+    -------
+    JSON response with a list of tracker URLs.
+
+    """
+    url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
+    response = requests.get(url)
+    tracker_list = response.text.split("\n")
+    stripped_list = list(filter(lambda x: x != "", tracker_list))
+    settings.update_one(
+        {"id": "announce_list"},
+        {"$set": {"announce_urls": stripped_list}},
+        upsert=True,
+    )

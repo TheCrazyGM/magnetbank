@@ -1,17 +1,35 @@
-import json
 import random
 import re
 import urllib.parse
 
 import requests
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, render_template, request
 from flask_paginate import Pagination, get_page_parameter
 
 from config import collection, settings
-from utils.helpers import generate_magnet_link
+from utils.helpers import generate_magnet_link, update_announce_urls
+
+# Create a scheduler instance
+scheduler = BackgroundScheduler()
+
+
+# Define a function that wraps `update_announce_urls`
+def update_announce_urls_job():
+    update_announce_urls()
+
+
+# Run the job once on start
+update_announce_urls_job()
+
+# Schedule the job to run every hour
+scheduler.add_job(update_announce_urls_job, "cron", hour=2)
+# Start the scheduler
+scheduler.start()
 
 # Create Flask app instance
 app = Flask("magnetbank")
+
 
 # Set number of torrents to display per page
 per_page = 99
@@ -347,18 +365,10 @@ def generate_torrent(q=None):
 @app.route("/api/announce_urls")
 def announce_urls():
     """
-    Return a list of available tracker URLs as a JSON response.
-
-    Returns
-    -------
-    JSON response with a list of tracker URLs.
-
+    Return a JSON response with a list of announce URLs.
     """
-    url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
-    response = requests.get(url)
-    tracker_list = response.text.split("\n")
-    stripped_list = list(filter(lambda x: x != "", tracker_list))
-    return json.dumps(stripped_list)
+    announce_list = settings.find_one({"id": "announce_list"})
+    return jsonify(announce_list["announce_urls"])
 
 
 # Run Flask app
