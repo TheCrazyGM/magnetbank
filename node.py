@@ -45,7 +45,7 @@ def get_last_block():
     int: The last block number.
     """
     # Find the last block number in the settings collection
-    last_block_data = settings_collection.find_one({"id": 1}, {"last_block": 1})
+    last_block_data = settings_collection.find_one({"id": "info"}, {"last_block": 1})
     if last_block_data.get("last_block") is not None:
         return last_block_data["last_block"]
     # If the last block number is not found, use the GENISYS_BLOCK environment variable
@@ -53,7 +53,7 @@ def get_last_block():
     set_block("last_block", last_block)
     # Update the settings collection with the new last block number
     settings_collection.update_one(
-        {"id": 1}, {"$set": {"genisys": last_block}}, upsert=True
+        {"id": "info"}, {"$set": {"genisys": last_block}}, upsert=True
     )
     logger.warning(f"Last block not found using root starting block {last_block}.")
     return last_block
@@ -69,7 +69,7 @@ def set_block(key, value):
     value (any): The value to set.
     """
     # Update the settings collection with the new key-value pair
-    settings_collection.update_one({"id": 1}, {"$set": {key: value}}, upsert=True)
+    settings_collection.update_one({"id": "info"}, {"$set": {key: value}}, upsert=True)
 
 
 def process_custom_json_operation(block, operation):
