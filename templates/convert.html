@@ -1,0 +1,88 @@
+{% extends "base.html" %} {% block content %}
+<h1 class="text-center">Convert Torrent File to Magnet Link</h1>
+<hr class="mb-4" />
+
+<div class="container">
+  {% if msg %}
+  <div
+    id="msg"
+    class="alert alert-{{ 'success' if magnet else 'danger' }}"
+    role="alert"
+  >
+    {{ msg }}
+  </div>
+  {% endif %}
+
+  <form
+    class="row g-3"
+    method="POST"
+    action="{{ url_for('convert') }}"
+    enctype="multipart/form-data"
+  >
+    <div class="col-2">
+      <label for="torrent" class="form-label">Torrent File:</label>
+    </div>
+    <div class="col-auto">
+      <input
+        type="file"
+        class="form-control"
+        id="torrent"
+        name="torrent"
+        accept=".torrent"
+      />
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-outline-success mb-3">
+        Convert to Magnet
+      </button>
+    </div>
+  </form>
+
+  {% if magnet %}
+  <form class="row g-3" method="GET" action="/add">
+    <div class="row g-3">
+      <div class="col-2">
+        <label for="magnet" class="form-label">Magnet Link:</label>
+      </div>
+      <div class="col-10">
+        <input
+          type="text"
+          class="form-control"
+          id="magnet"
+          name="magnet"
+          value="{{ magnet }}"
+          readonly
+        />
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-2">
+        <label for="category" class="form-label">Category:</label>
+      </div>
+      <div class="col-auto">
+        <select
+          class="form-select form-control"
+          id="category"
+          name="category"
+          required
+        >
+          <option value=""></option>
+          <option value="MOVIE">MOVIE</option>
+          <option value="TV">TV</option>
+          <option value="MUSIC">MUSIC</option>
+          <option value="APP">APP</option>
+          <option value="GAME">GAME</option>
+          <option value="PORN">PORN</option>
+          <option value="OTHER">OTHER</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-success mb-3">
+          Add Magnet
+        </button>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}
