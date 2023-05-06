@@ -8,7 +8,7 @@ $("#send_custom").on("click", () => {
       "MagnetBank",
       "Posting",
       jsonifiedCustomJson, // use the JSON string
-      "New Torrent",
+      "New Magnet Link",
       (response) => {
         console.log(response);
         $("#msg")
