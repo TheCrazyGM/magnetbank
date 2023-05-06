@@ -24,21 +24,18 @@
         </li>
         <li class="list-group-item">
           <b>Block Number:</b>
-          <a href="https://hiveblocks.com/b/{{ torrent.block_number }}"
+          <a href="https://hivehub.dev/b/{{ torrent.block_number }}"
             >{{torrent.block_number}}</a
           >
         </li>
-        <li class="list-group-item">
-          <b>Magnet Link:</b>
-          <a
-            href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name}}&tr={{torrent.announce_url}}"
-            >Click Here to Download</a
-          >
-        </li>
       </ul>
+      <a
+        href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name}}&tr={{torrent.announce_url}}"
+        class="btn btn-outline-success mt-3"
+        ><i class="las la-magnet"></i> Magnet Link</a
+      >
     </div>
   </div>
 </div>
 <script src="/static/js/torrents.js"></script>
-
 {% endblock %}
