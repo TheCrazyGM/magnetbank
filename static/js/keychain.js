@@ -1,15 +1,15 @@
 // Send Custom JSON request
 $("#send_custom").on("click", () => {
   try {
-    const customJson = JSON.parse($("#custom_json").val() as string); // convert to JSON object
+    const customJson = JSON.parse($("#custom_json").val()); // convert to JSON object
     const jsonifiedCustomJson = JSON.stringify(customJson); // convert to JSON string
     hive_keychain.requestCustomJson(
-      $("#custom_username").val() as string,
+      $("#custom_username").val(),
       "MagnetBank",
       "Posting",
       jsonifiedCustomJson, // use the JSON string
       "New Torrent",
-      response => {
+      (response) => {
         console.log(response);
         $("#msg")
           .removeClass("alert-danger")
