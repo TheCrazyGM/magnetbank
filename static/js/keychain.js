@@ -1,15 +1,15 @@
 // Send Custom JSON request
-$("#send_custom").on("click", function () {
+$("#send_custom").on("click", () => {
   try {
-    const customJson = JSON.parse($("#custom_json").val()); // convert to JSON object
+    const customJson = JSON.parse($("#custom_json").val() as string); // convert to JSON object
     const jsonifiedCustomJson = JSON.stringify(customJson); // convert to JSON string
     hive_keychain.requestCustomJson(
-      $("#custom_username").val(),
+      $("#custom_username").val() as string,
       "MagnetBank",
       "Posting",
       jsonifiedCustomJson, // use the JSON string
       "New Torrent",
-      function (response) {
+      response => {
         console.log(response);
         $("#msg")
           .removeClass("alert-danger")
@@ -22,6 +22,6 @@ $("#send_custom").on("click", function () {
     $("#msg")
       .removeClass("alert-success")
       .addClass("alert-danger")
-      .text("Error: " + error.message);
+      .text(`Error: ${error.message}`);
   }
 });
