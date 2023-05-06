@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block content %}
+<div class="container">
+  <h1 class="text-center">Magnet Details</h1>
+  <hr />
+  <div class="row">
+    <div class="col-auto offset-md-3">
+      <ul class="list-group">
+        <li class="list-group-item">
+          <b>File Name:</b> {{ torrent.file_name }}
+        </li>
+        <li class="list-group-item"><b>Hash:</b> {{ torrent.hash }}</li>
+        <li class="list-group-item">
+          <b>Announce URL:</b> {{ torrent.announce_url }}
+        </li>
+        <li class="list-group-item"><b>Category:</b> {{ torrent.category }}</li>
+        <li class="list-group-item">
+          <b>Timestamp:</b> {{ torrent.timestamp }}
+        </li>
+        <li class="list-group-item">
+          <b>Submitted By:</b>
+          <a href="https://peakd.com/@{{ torrent.submitted_by }}"
+            >{{torrent.submitted_by }}</a
+          >
+        </li>
+        <li class="list-group-item">
+          <b>Block Number:</b>
+          <a href="https://hiveblocks.com/b/{{ torrent.block_number }}"
+            >{{torrent.block_number}}</a
+          >
+        </li>
+        <li class="list-group-item">
+          <b>Magnet Link:</b>
+          <a
+            href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name}}&tr={{torrent.announce_url}}"
+            >Click Here to Download</a
+          >
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+<script src="/static/js/torrents.js"></script>
+
+{% endblock %}
