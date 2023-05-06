@@ -229,7 +229,7 @@ def about():
     total_torrents = collection.count_documents({})
 
     # Get latest information from settings collection
-    latest_info = settings.find_one({"id": 1})
+    latest_info = settings.find_one({"id": "info"})
 
     # Get current head block number from Hive blockchain API
     url = "https://api.hive.blog"
