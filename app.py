@@ -338,9 +338,6 @@ def generate_torrent(q=None):
         )
         json_data.append(
             {
-                "hash": torrent["hash"],
-                "file_name": torrent["file_name"],
-                "announce_url": torrent["announce_url"],
                 "magnet_link": magnet_link,
             }
         )
