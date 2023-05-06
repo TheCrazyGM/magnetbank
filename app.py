@@ -1,3 +1,4 @@
+import json
 import random
 import re
 import urllib.parse
@@ -267,7 +268,7 @@ def export_json(q=None):
     return jsonify(torrent_list)
 
 
-@app.route("/api/hash/<hash>")
+@app.route("/api/hash/<q>")
 def export_hash(q=None):
     """
     Return a JSON response with a list of torrents matching the hash.
@@ -299,6 +300,68 @@ def export_user(q=None):
     """
     torrent_list = list(collection.find({"submitted_by": q}, {"_id": False}))
     return jsonify(torrent_list)
+
+
+@app.route("/api/generate/<q>")
+def generate_torrent(q=None):
+    """
+    Generate a list of torrents based on the search query.
+
+    Args:
+    ----
+    q (str): The search query.
+
+    Returns:
+    -------
+    A JSON response with a list of torrents matching the search query.
+    """
+
+    torrent_list = list(
+        collection.find(
+            {
+                "$or": [
+                    {"hash": {"$regex": q, "$options": "i"}},
+                    {"file_name": {"$regex": q, "$options": "i"}},
+                    {"submitted_by": {"$regex": q, "$options": "i"}},
+                ]
+            },
+            {"_id": False},
+        )
+    )
+
+    json_data = []
+    for torrent in torrent_list:
+        magnet_link = (
+            f"magnet:?xt=urn:btih:{torrent['hash']}"
+            f"&dn={torrent['file_name']}"
+            f"&tr={torrent['announce_url']}"
+        )
+        json_data.append(
+            {
+                "hash": torrent["hash"],
+                "file_name": torrent["file_name"],
+                "announce_url": torrent["announce_url"],
+                "magnet_link": magnet_link,
+            }
+        )
+    return jsonify(json_data)
+
+
+@app.route("/api/announce_urls")
+def announce_urls():
+    """
+    Return a list of available tracker URLs as a JSON response.
+
+    Returns
+    -------
+    JSON response with a list of tracker URLs.
+
+    """
+    url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
+    response = requests.get(url)
+    tracker_list = response.text.split("\n")
+    stripped_list = list(filter(lambda x: x != "", tracker_list))
+    return json.dumps(stripped_list)
 
 
 # Run Flask app
