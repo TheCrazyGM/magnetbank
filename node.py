@@ -112,18 +112,18 @@ def process_custom_json_operation(block, operation):
     elif all(
         key in json_data for key in ["action", "hash"] and submitted_by == ADMIN_ACCOUNT
     ):
-        if json_data.get("action") == "change":
+        if json_data.get("action") == "update":
             torrents_collection.update_one(
                 {"hash": json_data["hash"]},
                 {"$set": {"category": json_data["category"]}},
                 upsert=True,
             )
             logger.info(
-                f"Hash key {json_data['hash']} changed to {json_data['category']} by submitted_by"
+                f"Hash key {json_data['hash']} updated to {json_data['category']} by {submitted_by}"
             )
         if json_data.get("action") == "delete":
             torrents_collection.delete_one({"hash": json_data["hash"]})
-            logger.info(f"Hash key {json_data['hash']} deleted by submitted_by")
+            logger.info(f"Hash key {json_data['hash']} deleted by {submitted_by}")
     else:
         # If the data is not well-formed, log a warning
         logger.warning("Malformed data received.")
