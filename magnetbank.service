@@ -1,0 +1,11 @@
+[Unit]
+Description=MagnetBank Frontend
+After=network.target
+
+[Service]
+User=edryx
+WorkingDirectory=/home/edryx/magnetbank-frontend
+ExecStart=/home/edryx/magnetbank-frontend/venv/bin/gunicorn --workers 3 --bind unix:/tmp/magnetbank.sock app:app
+
+[Install]
+WantedBy=multi-user.target
