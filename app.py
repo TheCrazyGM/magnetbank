@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, render_template, request
 from flask_paginate import Pagination, get_page_parameter
 
-from config import collection, settings
+from config import ADMIN, HIVE_NODE, collection, settings
 from utils.helpers import generate_magnet_link, update_announce_urls
 
 # Create a scheduler instance
@@ -232,7 +232,7 @@ def about():
     latest_info = settings.find_one({"id": "info"})
 
     # Get current head block number from Hive blockchain API
-    url = "https://api.hive.blog"
+    url = HIVE_NODE
     headers = {"Content-Type": "application/json"}
     data = {
         "jsonrpc": "2.0",
@@ -263,7 +263,7 @@ def admin():
     Rendered HTML template with access to manage the application.
     """
     # Render HTML template with information about the application
-    return render_template("admin.html")
+    return render_template("admin.html", admin=ADMIN)
 
 
 # Define API routes for exporting torrent data
