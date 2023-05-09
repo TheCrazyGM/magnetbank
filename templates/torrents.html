@@ -8,7 +8,8 @@
     <div class="card h-100">
       <div class="card-body">
         <h6 class="card-title">
-          <a href="/category/{{torrent.category}}/{{torrent.file_name}}"
+          <a
+            href="/category/{{torrent.category}}/{{torrent.file_name|urlencode}}"
             >{{ torrent.file_name|truncate(48, True) }}</a
           >
         </h6>
@@ -29,7 +30,7 @@
 
         <p class="card-text">
           <a
-            href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name}}&tr={{torrent.announce_url}}"
+            href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name|urlencode}}&tr={{torrent.announce_url|urlencode}}"
             class="btn btn-outline-success mt-3"
           >
             <i class="las la-magnet"></i> Magnet Link

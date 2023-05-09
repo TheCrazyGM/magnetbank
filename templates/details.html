@@ -30,7 +30,7 @@
         </li>
       </ul>
       <a
-        href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name}}&tr={{torrent.announce_url}}"
+        href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name|urlencode}}&tr={{torrent.announce_url|urlencode}}"
         class="btn btn-outline-success mt-3"
         ><i class="las la-magnet"></i> Magnet Link</a
       >
