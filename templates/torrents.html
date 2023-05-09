@@ -9,7 +9,7 @@
       <div class="card-body">
         <h6 class="card-title">
           <a href="/category/{{torrent.category}}/{{torrent.file_name}}"
-            >{{ torrent.file_name|truncate }}</a
+            >{{ torrent.file_name|truncate(48, True) }}</a
           >
         </h6>
 
