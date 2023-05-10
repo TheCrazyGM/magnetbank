@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% block content %}
+<h1 class="text-center">{{ header }}</h1>
+<hr />
+<div class="container">
+  <p class="text-center">
+    <b>Hive Account</b>:
+    <a href="https://peakd.com/@{{username}}"
+      ><i class="cf cf-hive"></i> {{username}}</a
+    >
+  </p>
+</div>
+<hr />
+
+{% include "torrents.html" %} {% endblock %}

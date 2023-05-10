@@ -6,26 +6,29 @@
     <div class="col-auto offset-md-3">
       <ul class="list-group">
         <li class="list-group-item">
-          <b>File Name:</b> {{ torrent.file_name | truncate (48, True) }}
-        </li>
-        <li class="list-group-item"><b>Hash:</b> <a
-            href="/category/{{torrent.category}}/{{torrent.hash}}"
-            >{{ torrent.hash }}</a ></li>
-        <li class="list-group-item">
-          <b>Announce URL:</b> {{ torrent.announce_url }}
-        </li>
-        <li class="list-group-item"><b>Category:</b> {{ torrent.category }}</li>
-        <li class="list-group-item">
-          <b>Timestamp:</b> {{ torrent.timestamp }}
+          <b>File Name</b>: {{ torrent.file_name | truncate (48, True) }}
         </li>
         <li class="list-group-item">
-          <b>Submitted By:</b>
-          <a href="https://peakd.com/@{{ torrent.submitted_by }}"
-            ><i class="cf cf-hive"></i> {{torrent.submitted_by }}</a
+          <b>Hash:</b>
+          <a href="/category/{{torrent.category}}/{{torrent.hash}}"
+            >{{ torrent.hash }}</a
           >
         </li>
         <li class="list-group-item">
-          <b>Block Number:</b>
+          <b>Announce URL</b>: {{ torrent.announce_url }}
+        </li>
+        <li class="list-group-item"><b>Category:</b> {{ torrent.category }}</li>
+        <li class="list-group-item">
+          <b>Timestamp</b>: {{ torrent.timestamp }}
+        </li>
+        <li class="list-group-item">
+          <b>Submitted By</b>:
+          <a href="/user/{{ torrent.submitted_by }}">
+            {{torrent.submitted_by }}</a
+          >
+        </li>
+        <li class="list-group-item">
+          <b>Block Number</b>:
           <a href="https://hivehub.dev/b/{{ torrent.block_number }}"
             >{{torrent.block_number}}</a
           >

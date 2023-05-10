@@ -1,6 +1,4 @@
-{% extends "base.html" %} {% block content %}
-<h1 class="text-center">{{ header }}</h1>
-<hr />
+{% block torrents %}
 
 <div class="row row-cols-1 row-cols-md-3 g-4">
   {% for torrent in torrents %}
@@ -23,8 +21,8 @@
           ><br />
           <b>Category</b>: {{ torrent.category }}<br />
           <b>Submitted by</b>:
-          <a href="https://peakd.com/@{{ torrent.submitted_by }}"
-            ><i class="cf cf-hive"></i> {{ torrent.submitted_by }}</a
+          <a href="/user/{{ torrent.submitted_by }}">
+            {{ torrent.submitted_by }}</a
           >
         </p>
 

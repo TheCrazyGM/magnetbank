@@ -1,3 +1,4 @@
+{% include "header.html" %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -51,104 +52,8 @@
   </head>
 
   <body>
-    {% set nav_links = [{'url': url_for('index'), 'text': 'All Torrents'},
-    {'url': url_for('index', category='MOVIE'), 'text': 'Movies'}, {'url':
-    url_for('index', category='TV'), 'text': 'TV'}, {'url': url_for('index',
-    category='MUSIC'), 'text': 'Music'}, {'url': url_for('index',
-    category='AUDIO'), 'text': 'Audio'}, {'url': url_for('index',
-    category='APP'), 'text': 'Apps'}, {'url': url_for('index',
-    category='GAME'),'text': 'Games'}, {'url': url_for('index',
-    category='PORN'), 'text': 'Porn'}, {'url': url_for('index',
-    category='TEXT'), 'text': 'Text'}, {'url': url_for('index',
-    category='OTHER'), 'text': 'Other'}, {'url': url_for('add'), 'text': 'Add
-    Magnet'}, {'url': url_for('convert'), 'text': 'Convert Torrent'}, {'url':
-    url_for('about'), 'text': 'About'}] %}
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/">
-          <div class="d-flex align-items-center">
-            <div class="col-auto">
-              <img
-                src="/static/img/logo.png"
-                alt="logo"
-                class="d-inline-block align-text-center"
-                height="48"
-                width="48"
-              />
-            </div>
-            <div>
-              PsyberSects' <br />
-              MagnetBank
-            </div>
-          </div>
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div
-          class="collapse navbar-collapse justify-content-center mb-3 mb-lg-0"
-          id="navbarNav"
-        >
-          <ul class="navbar-nav me-auto">
-            {% for link in nav_links %}
-            <li
-              class="{{'active' if request.path == link.url else ''}} nav-item"
-            >
-              <a href="{{link.url}}" class="nav-link">{{link.text}}</a>
-            </li>
-            {% endfor %}
-          </ul>
-          <form
-            class="d-flex ms-auto"
-            action="{{ url_for('index') }}"
-            method="GET"
-          >
-            <input
-              class="form-control me-2"
-              type="search"
-              placeholder="Keyword Search"
-              aria-label="Search"
-              name="q"
-              value="{{ request.args.get('q', '') }}"
-            />
-            <button class="btn btn-outline-success" type="submit">
-              Filter
-            </button>
-          </form>
-        </div>
-      </div>
-    </nav>
-
     <div class="container-fluid mt-5">{% block content %}{% endblock %}</div>
 
-    <footer class="bg-dark py-3 mb-3 mt-3">
-      <div class="container-fluid">
-        <div class="row text-center small">
-          <p class="text-white mt-3 mb-2">
-            Made with ❤️ by
-            <a href="https://peakd.com/@edryx" class="text-white no-underline"
-              ><i class="cf cf-hive"></i> edryx</a
-            >
-          </p>
-          <p class="text-white mb-3">
-            Buy me a coffee?<br />
-            <i class="cf cf-btc"></i>
-            bc1qnp7jlxqhqky53zum2un3yxkx2v5f39ywwkuqld<br />
-            <i class="cf cf-ltc"></i> LLuRWLt9vy2d9ZpbM566a9AwusRiKSjBae<br />
-            <i class="cf cf-eth"></i> 0x6f6E4DEFEDbF0FEE3A1604fC386Dd45B20B81beA
-          </p>
-        </div>
-      </div>
-    </footer>
+    {% include "footer.html" %}
   </body>
 </html>

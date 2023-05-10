@@ -84,7 +84,7 @@ def index(category=None):
 
     # Render HTML template with list of torrents and pagination
     return render_template(
-        "torrents.html", torrents=torrents, pagination=pagination, header=header
+        "list.html", torrents=torrents, pagination=pagination, header=header
     )
 
 
@@ -103,6 +103,45 @@ def serve_torrent(category, filename):
 
     # Render HTML template with torrent details
     return render_template("details.html", torrent=torrent)
+
+
+@app.route("/user/<username>")
+def serve_user(username):
+    """
+    Serve the torrent files with the given username in all categories.
+    """
+    page = request.args.get(get_page_parameter(), type=int, default=1)
+
+    # Create pagination object
+    # Define query to find torrent with matching category and filename
+    query = {"submitted_by": username}
+    # Get total number of torrents matching the query
+    total_torrents = collection.count_documents(query)
+
+    # Create pagination object
+    pagination = Pagination(
+        page=page, total=total_torrents, per_page=per_page, css_framework="bootstrap5"
+    )
+
+    # Get cursor to iterate over torrents matching the query
+    torrents_cursor = collection.find(query).sort([("timestamp", -1), ("hash", 1)])
+    torrents_cursor = torrents_cursor.skip((page - 1) * per_page).limit(per_page)
+
+    # Convert cursor to list of dictionaries
+    torrents = list(torrents_cursor)
+
+    # Set header for page
+    header = f"{username}'s Profile"
+
+    # Render HTML template with list of torrents and pagination
+    return render_template(
+        "user.html",
+        torrents=torrents,
+        pagination=pagination,
+        header=header,
+        total_torrents=total_torrents,
+        username=username,
+    )
 
 
 # Define route for adding a new torrent
