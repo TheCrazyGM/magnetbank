@@ -13,7 +13,7 @@
         </h6>
 
         <p class="card-text">
-          <b>Hash</b>: {{ torrent.hash}} <br />
+          <b>Hash</b>: {{ torrent.hash|upper}} <br />
           <b>Timestamp</b>: {{ torrent.timestamp }}<br />
           <b>Block Number:</b>
           <a href="https://hivehub.dev/b/{{ torrent.block_number }}"
