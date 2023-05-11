@@ -49,14 +49,14 @@ $("#send_signature").click(() => {
 // Update custom_json textarea with JSONified data
 const updateCustomJson = () => {
   const customJson = {
-    custom_action: $("#custom_action").val(),
+    action: $("#action").val(),
     hash: $("#hash").val(),
     category: $("#category").val(),
   };
   $("#custom_json").val(JSON.stringify(customJson));
 };
 // Add event listeners to input fields
-$("#custom_action, #hash, #category").on("input", updateCustomJson);
+$("#action, #hash, #category").on("input", updateCustomJson);
 
 // Send Custom JSON request
 $("#send_custom").on("click", () => {
