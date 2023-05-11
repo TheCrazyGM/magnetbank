@@ -67,8 +67,8 @@
       <textarea class="form-control" rows="6" id="custom_json" disabled>
               {
                 "file_name": "{{torrent_json.file_name}}",
-                "hash": "{{torrent_json.hash}}",
-                "announce_url": "{{torrent_json.announce_url|safe}}",
+                "hash": "{{torrent_json.hash|upper}}",
+                "announce_url": "{{torrent_json.announce_url}}",
                 "category": "{{category}}"
               }
             </textarea

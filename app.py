@@ -187,7 +187,7 @@ def add(category=None):
             torrent_metadata = {
                 "announce_url": random_announce_url,
                 "file_name": file_name,
-                "hash": info_hash,
+                "hash": info_hash.upper(),
             }
 
             # Check if torrent already exists in database
