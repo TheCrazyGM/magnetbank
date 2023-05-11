@@ -92,6 +92,7 @@ def process_custom_json_operation(block, operation):
         # Add additional data to the JSON object
         json_data.update(
             {
+                "hash": json_data["hash"].upper(),
                 "timestamp": time,
                 "submitted_by": submitted_by,
                 "block_number": number,
