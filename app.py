@@ -6,6 +6,7 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, render_template, request
 from flask_paginate import Pagination, get_page_parameter
+from beem.exceptions import ContentDoesNotExistsException
 
 from config import ADMIN, HIVE_NODE, collection, settings
 from utils.helpers import generate_magnet_link, update_announce_urls
@@ -333,9 +334,12 @@ def export_edits():
         q = request.form.get("q")
         if q and q.startswith("@"):
             username, permlink = q.split("/")
-            data = lookup_edits(q)
+            try:
+                data = lookup_edits(q)
+            except ContentDoesNotExistsException:
+                data = {"edits":[{"trx_id":0,"body":"Content does not exist!"}]}
         else:
-            data = {"edits":[{"trx_id":"Please input a valid authorperm such as @user/permlink"}]}
+            data = {"edits":[{"trx_id":0, "body": "Please input a valid authorperm such as @user/permlink"}]}
         return render_template("edit_results.html", data=data)
 
 @app.route("/api/hash/<q>")
