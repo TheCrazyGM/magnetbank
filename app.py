@@ -331,7 +331,11 @@ def export_edits():
         return render_template("edit_search.html")
     elif request.method == "POST":
         q = request.form.get("q")
-        data = lookup_edits(q) if q else {}
+        if q and q.startswith("@"):
+            username, permlink = q.split("/")
+            data = lookup_edits(q)
+        else:
+            data = {"edits":[{"trx_id":"Please input a valid authorperm such as @user/permlink"}]}
         return render_template("edit_results.html", data=data)
 
 @app.route("/api/hash/<q>")
