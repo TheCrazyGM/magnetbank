@@ -1,0 +1,17 @@
+{% extends "base.html" %} {% block content %}
+<div class="container">
+  <h1 class="text-center">Search Post/Comment Edits</h1>
+  <hr />
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <form action="/lookup" method="POST">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" name="q" placeholder="Enter permlink" />
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+      <p>Please only submit once and be patient, it's a slow process.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

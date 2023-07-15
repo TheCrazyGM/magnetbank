@@ -9,6 +9,7 @@ from flask_paginate import Pagination, get_page_parameter
 
 from config import ADMIN, HIVE_NODE, collection, settings
 from utils.helpers import generate_magnet_link, update_announce_urls
+from utils.lookup_edits import lookup_edits
 
 # Create a scheduler instance
 scheduler = BackgroundScheduler()
@@ -279,7 +280,7 @@ def about():
         "params": [],
         "id": 1,
     }
-    response = requests.post(url, headers=headers, json=data)
+    response = requests.post(url, headers=headers, json=data, timeout=30)
     json_data = response.json()
     head_block_number = json_data["result"]["head_block_number"]
 
@@ -324,6 +325,14 @@ def export_json(q=None):
     )
     return jsonify(torrent_list)
 
+@app.route("/lookup", methods=["GET", "POST"])
+def export_edits():
+    if request.method == "GET":
+        return render_template("edit_search.html")
+    elif request.method == "POST":
+        q = request.form.get("q")
+        data = lookup_edits(q) if q else {}
+        return render_template("edit_results.html", data=data)
 
 @app.route("/api/hash/<q>")
 def export_hash(q=None):
@@ -412,4 +421,4 @@ def announce_urls():
 
 # Run Flask app
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
