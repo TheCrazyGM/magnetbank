@@ -2,6 +2,7 @@ import re
 import sys
 import markdown
 import lxml.html
+import urllib
 
 from beem import Hive
 from beem.account import Account
@@ -71,6 +72,7 @@ def lookup_edits(authorperm):
     for x in data["edits"]:
         x['body'] = lxml.html.fromstring(x["body"]).text_content()
         if x['body'].startswith("@@"):
+            x['body'] = urllib.parse.unquote(x['body'])
             x['body'] =(f"```diff\n {x['body']} \n```")
         strip(x)
     return data
