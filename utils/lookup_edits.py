@@ -33,6 +33,7 @@ def strip(text):
     text["body"] = markdown.markdown(
         text["body"],
         extensions=[
+            "extra",
             "nl2br",
             "codehilite",
         ],
@@ -69,6 +70,8 @@ def lookup_edits(authorperm):
 
     for x in data["edits"]:
         x['body'] = lxml.html.fromstring(x["body"]).text_content()
+        if x['body'].startswith("@@"):
+            x['body'] =(f"```diff\n {x['body']} \n```")
         strip(x)
     return data
 
