@@ -1,13 +1,12 @@
 import re
 import sys
-import markdown
-import lxml.html
-import urllib
 
+import markdown
 from beem import Hive
 from beem.account import Account
 from beem.comment import Comment
-from flask import Markup
+from bs4 import BeautifulSoup
+
 from config import HIVE_NODE
 
 hive = Hive(nodes=HIVE_NODE)
@@ -17,20 +16,12 @@ IMAGE_PROXY = "https://images.hive.blog/400x400/"
 
 
 def strip(text):
-    def replacer(match):
-        if match.group(1):
-            return rf"![]({match.group(1)}) >"
-        elif match.group(2):
-            return "<h3>"
-        elif match.group(3):
-            return rf"<img src={IMAGE_PROXY}{match.group(3)} >"
-        else:
-            return match.group(0)
-
-    pattern = re.compile(
-        r"(^https?:[^)''\"]+\.(?:jpg|jpeg|gif|png))|(<h1>|<h2>)|<img\b(?=\s)(?=(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\s>]*)*?\ssrc=['\"]([^\"]*)['\"]?)(?:[^>=]|='[^']*'|=\"[^\"]*\"|= '\"\s]*)*\"\s?\/?>"
+    text["body"] = re.sub(
+        r"(^https?:[^)''\"]+\.(?:jpg|jpeg|gif|png))",
+        r"![](\1)",
+        text["body"],
     )
-    text["body"] = re.sub(pattern, replacer, text["body"])
+
     text["body"] = markdown.markdown(
         text["body"],
         extensions=[
@@ -39,7 +30,12 @@ def strip(text):
             "codehilite",
         ],
     )
-    text["body"] = Markup(text["body"])
+    text["body"] = re.sub(
+        r"<img\b(?=\s)(?=(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"][^\s>]*)*?\ssrc=['\"]([^\"]*)['\"]?)(?:[^>=]|='[^']*'|=\"[^\"]*\"|=[^'\"\s]*)*\"\s?\/?>",
+        rf"<img src={IMAGE_PROXY}\1>",
+        text["body"],
+    )
+
     return text
 
 
@@ -70,10 +66,10 @@ def lookup_edits(authorperm):
             data["edits"].append(edit)
 
     for x in data["edits"]:
-        x['body'] = lxml.html.fromstring(x["body"]).text_content()
-        if x['body'].startswith("@@"):
-            x['body'] = urllib.parse.unquote(x['body'])
-            x['body'] =(f"```diff\n {x['body']} \n```")
+        soup = BeautifulSoup(x["body"], "html.parser")
+        x["body"] = soup.get_text()
+        if x["body"].startswith("@@"):
+            x["body"] = f"```diff\n{x['body']}\n```"
         strip(x)
     return data
 
