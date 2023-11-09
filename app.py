@@ -6,11 +6,9 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, render_template, request
 from flask_paginate import Pagination, get_page_parameter
-from beem.exceptions import ContentDoesNotExistsException
 
 from config import ADMIN, HIVE_NODE, collection, settings
 from utils.helpers import generate_magnet_link, update_announce_urls
-from utils.lookup_edits import lookup_edits
 
 # Create a scheduler instance
 scheduler = BackgroundScheduler()
@@ -325,22 +323,6 @@ def export_json(q=None):
         collection.find({"file_name": {"$regex": q, "$options": "i"}}, {"_id": False})
     )
     return jsonify(torrent_list)
-
-@app.route("/lookup", methods=["GET", "POST"])
-def export_edits():
-    if request.method == "GET":
-        return render_template("edit_search.html")
-    elif request.method == "POST":
-        q = request.form.get("q")
-        if q and q.startswith("@"):
-            username, permlink = q.split("/")
-            try:
-                data = lookup_edits(q)
-            except ContentDoesNotExistsException:
-                data = {"edits":[{"trx_id":0,"body":"Content does not exist!"}]}
-        else:
-            data = {"edits":[{"trx_id":0, "body": "Please input a valid authorperm such as @user/permlink"}]}
-        return render_template("edit_results.html", data=data)
 
 @app.route("/api/hash/<q>")
 def export_hash(q=None):
