@@ -1,0 +1,61 @@
+{% block header %} 
+
+{% set nav_links = [{'url': url_for('export_edits'), 'text': 'Lookup Edits'}, ] %}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">
+      <div class="d-flex align-items-center">
+        <div class="col-auto">
+          <img
+            src="/static/img/logo.png"
+            alt="logo"
+            class="d-inline-block align-text-center m-1"
+            height="48"
+            width="48"
+          />
+        </div>
+        <div>
+          InfinteXLinks<br />
+          Tools
+        </div>
+      </div>
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div
+      class="collapse navbar-collapse justify-content-center mb-3 mb-lg-0"
+      id="navbarNav"
+    >
+      <ul class="navbar-nav me-auto">
+        {% for link in nav_links %}
+        <li class="{{'active' if request.path == link.url else ''}} nav-item">
+          <a href="{{link.url}}" class="nav-link">{{link.text}}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      <form class="d-flex ms-auto" action="{{ url_for('index') }}" method="GET">
+        <input
+          class="form-control me-2"
+          type="search"
+          placeholder="Keyword Search"
+          aria-label="Search"
+          name="q"
+          value="{{ request.args.get('q', '') }}"
+        />
+        <button class="btn btn-outline-success" type="submit">Filter</button>
+      </form>
+    </div>
+  </div>
+</nav>
+{% endblock %}
