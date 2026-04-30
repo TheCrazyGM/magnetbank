@@ -45,10 +45,11 @@ scheduler.add_job(update_announce_urls_job, "cron", hour=2)
 scheduler.start()
 
 # Create Flask app instance
+base_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(
     "magnetbank",
-    template_folder="templates",
-    static_folder="static",
+    template_folder=os.path.join(base_dir, "templates"),
+    static_folder=os.path.join(base_dir, "static"),
 )
 
 # Database setup
