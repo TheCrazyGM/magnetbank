@@ -2,9 +2,9 @@ import re
 import sys
 import os
 import markdown
-from beem import Hive
-from beem.account import Account
-from beem.comment import Comment
+from nectar import Hive
+from nectar.account import Account
+from nectar.comment import Comment
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 

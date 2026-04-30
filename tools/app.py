@@ -1,7 +1,7 @@
 import os
 import sys
 from flask import Flask, render_template, request
-from beem.exceptions import ContentDoesNotExistsException
+from nectar.exceptions import ContentDoesNotExistsException
 
 # Add current directory and subdirectory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

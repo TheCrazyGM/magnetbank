@@ -4,9 +4,9 @@ import os
 import time
 import sys
 
-from beem import Hive
-from beem.block import Blocks
-from beem.blockchain import Blockchain
+from nectar import Hive
+from nectar.block import Blocks
+from nectar.blockchain import Blockchain
 from dotenv import load_dotenv
 
 # Add parent directory to path to import utils
@@ -87,7 +87,7 @@ def process_custom_json_operation(block, operation):
 
     Args:
     ----
-    block (beem.block.Block): The block containing the operation.
+    block (nectar.block.Block): The block containing the operation.
     operation (dict): The custom JSON operation.
     """
     timestamp = block["timestamp"].isoformat()
