@@ -10,7 +10,7 @@ click==8.1.7
 click-shell==2.1
 diff-match-patch==20230430
 dnspython==2.4.2
-ecdsa==0.18.0
+ecdsa==0.19.2
 Flask==3.0.0
 idna==3.4
 itsdangerous==2.1.2
