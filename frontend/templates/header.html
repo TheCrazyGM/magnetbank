@@ -12,16 +12,16 @@
 ] %}
 
 <nav class="navbar navbar-expand-lg">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/">
-      <div class="brand-container">
+  <div class="container-fluid align-items-center">
+    <a class="navbar-brand py-0" href="/">
+      <div class="brand-container d-flex align-items-center">
         <img src="/static/img/logo.png" alt="logo" class="brand-logo" height="48" width="48" />
-        <div class="brand-text">
-          <span>InfinteXLinks'</span>
-          <span class="brand-sub">MagnetBank</span>
+        <div class="brand-text ms-2">
+          <span class="brand-title">MagnetBank</span>
         </div>
       </div>
     </a>
+
     <button
       class="navbar-toggler"
       type="button"
@@ -35,18 +35,18 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
+      <ul class="navbar-nav mx-auto align-items-center">
         {% for link in nav_links %}
         <li class="nav-item">
           <a href="{{link.url}}" class="nav-link {{'active' if request.path == link.url else ''}}">{{link.text}}</a>
         </li>
         {% endfor %}
       </ul>
-      <form class="search-form d-flex" action="{{ url_for('index') }}" method="GET">
+      <form class="search-form d-flex align-items-center mb-0" action="{{ url_for('index') }}" method="GET">
         <input
           class="form-control"
           type="search"
-          placeholder="Search hashes, files, users..."
+          placeholder="SCAN DATABASE..."
           aria-label="Search"
           name="q"
           value="{{ request.args.get('q', '') }}"

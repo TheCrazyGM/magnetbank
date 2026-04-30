@@ -41,11 +41,17 @@ h1, h2, h3, .navbar-brand, .nav-link, .btn-neon, .torrent-title {
   margin-bottom: 3rem;
 }
 
-.brand-sub {
-  color: var(--neon-green);
-  text-shadow: 0 0 10px var(--neon-green-glow);
-  font-size: 1.4rem;
+.brand-title {
+  color: var(--text-main);
+  font-size: 1.6rem;
   letter-spacing: 2px;
+  line-height: 1;
+}
+
+.navbar .navbar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .nav-link {
