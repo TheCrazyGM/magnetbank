@@ -1,110 +1,107 @@
-{% extends "base.html" %} {% block content %}
-  <h1 class="text-center">Add Magnet Link</h1>
-  <hr class="mb-4" />
-
-  <div class="container">
-    {% if msg %}
-      <div
-        id="msg"
-        class="alert alert-{{ 'success' if magnet else 'danger' }}"
-        role="alert"
-      >
-        {{ msg }}
-      </div>
-    {% endif %} {% if not magnet %}
-      <form method="GET" action="{{ url_for('add') }}">
-        <div class="row mb-2 mt-2">
-          <div class="col-2">
-            <label for="magnet" class="form-label">Magnet:</label>
-          </div>
-          <div class="col-10">
-            <input
-              type="text"
-              class="form-control"
-              id="magnet"
-              name="magnet"
-              placeholder="Magnet"
-              required
-            />
-          </div>
-        </div>
-        <div class="row mb-2 mt-2">
-          <div class="col-2">
-            <label for="category" class="form-label">Category:</label>
-          </div>
-          <div class="col-auto">
-            <select
-              class="form-select form-control"
-              id="category"
-              name="category"
-              required
-            >
-              <option value=""></option>
-              <option value="MOVIE">MOVIE</option>
-              <option value="TV">TV</option>
-              <option value="VIDEO">VIDEO</option>
-              <option value="MUSIC">MUSIC</option>
-              <option value="AUDIO">AUDIO</option>
-              <option value="APP">APP</option>
-              <option value="GAME">GAME</option>
-              <option value="PORN">PORN</option>
-              <option value="TEXT">TEXT</option>
-              <option value="OTHER">OTHER</option>
-            </select>
-          </div>
-          <div class="col-auto">
-            <button type="submit" class="btn btn-outline-success">
-              Add Magnet
-            </button>
-          </div>
-        </div>
-      </form>
-    {% endif %} {% if torrent_json %} {% if magnet %}
-      <h3>Submission of Custom JSON via Hive Keychain</h3>
-
-      <div class="row">
-        <div class="col-12 mb-2">
-          <textarea class="form-control" rows="6" id="custom_json" disabled>
-            {
-            "file_name": "{{torrent_json.file_name}}",
-            "hash": "{{torrent_json.hash|upper}}",
-            "announce_url": "{{torrent_json.announce_url}}",
-            "category": "{{category}}"
-            }
-            </textarea
-            >
-          </div>
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-5">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="text-neon display-4 mb-3">DATA INGESTION: ADD MAGNET</h1>
+                <div class="header-line mx-auto"></div>
+            </div>
         </div>
 
-        <div class="row mt-3">
-          <div class="col-12">
-            <p>
-              Kindly ensure that the information provided is accurate and that the
-              category selected is appropriate for the magnet link. Once the data is
-              recorded on the blockchain, it cannot be reversed.
-            </p>
-            <p>
-              It may take a few minutes for the node to incorporate the magnet. Please
-              refrain from submitting duplicate entries.
-            </p>
-          </div>
-          <div class="col-6">
-            <input
-              type="text"
-              class="form-control"
-              placeholder="username"
-              id="custom_username"
-              value="username"
-            />
-          </div>
-          <div class="col-6">
-            <button type="button" class="btn btn-outline-success" id="send_custom">
-              Send Custom JSON
-            </button>
-          </div>
-        </div>
-    {% endif %} {% endif %}
-  </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                {% if msg %}
+                    <div class="status-panel p-3 mb-4 {{ 'border-success' if torrent_json else 'border-danger' }}">
+                        <span class="{{ 'text-neon' if torrent_json else 'text-danger' }}">
+                            <i class="la {{ 'la-check-circle' if torrent_json else 'la-exclamation-triangle' }}"></i>
+                            {{ msg }}
+                        </span>
+                    </div>
+                {% endif %}
 
-  <script src="/static/js/keychain.js"></script>
+                {% if not torrent_json %}
+                    <div class="status-panel p-4 p-md-5">
+                        <form method="GET" action="{{ url_for('add') }}">
+                            <div class="mb-4">
+                                <label for="magnet" class="form-label text-dim small">MAGNET URI</label>
+                                <input
+                                    type="text"
+                                    class="form-control bg-dark border-secondary text-neon"
+                                    id="magnet"
+                                    name="magnet"
+                                    placeholder="magnet:?xt=urn:btih:..."
+                                    required
+                                    value="{{ magnet if magnet else '' }}"
+                                />
+                            </div>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-8">
+                                    <label for="category" class="form-label text-dim small">CLASSIFICATION</label>
+                                    <select
+                                        class="form-select bg-dark border-secondary text-neon"
+                                        id="category"
+                                        name="category"
+                                        required
+                                    >
+                                        <option value="" disabled selected>SELECT CATEGORY...</option>
+                                        <option value="VIDEO">VIDEO</option>
+                                        <option value="AUDIO">AUDIO</option>
+                                        <option value="APP">APP</option>
+                                        <option value="TEXT">TEXT</option>
+                                        <option value="OTHER">OTHER</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn-neon w-100 py-2">VALIDATE</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="status-panel p-4 p-md-5">
+                        <h3 class="text-neon mb-4"><i class="la la-cloud-upload"></i> BLOCKCHAIN SUBMISSION</h3>
+
+                        <div class="mb-4">
+                            <label class="text-dim small">CUSTOM JSON PAYLOAD</label>
+                            <textarea class="form-control bg-dark border-secondary text-dim small" rows="6" id="custom_json" readonly>{
+                                "file_name": "{{torrent_json.file_name}}",
+                                "hash": "{{torrent_json.hash|upper}}",
+                                "announce_url": "{{torrent_json.announce_url}}",
+                                "category": "{{category}}"
+                                }</textarea>
+                        </div>
+
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-8">
+                                <label for="custom_username" class="text-dim small">HIVE USERNAME</label>
+                                <input
+                                    type="text"
+                                    class="form-control bg-dark border-secondary text-neon"
+                                    placeholder="username"
+                                    id="custom_username"
+                                    value=""
+                                />
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn-neon w-100 py-2" id="send_custom">
+                                    BROADCAST
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 border border-secondary small text-dim">
+                            <p class="mb-2"><i class="la la-info-circle"></i> Verification required via Hive Keychain.</p>
+                            <p class="mb-0">Broadcasts to the blockchain are immutable. Ensure category classification is accurate before proceeding.</p>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <a href="{{ url_for('add') }}" class="text-dim small no-underline">← RESET SCANNER</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/keychain.js"></script>
 {% endblock %}

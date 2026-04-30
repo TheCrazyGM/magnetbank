@@ -15,6 +15,7 @@ class Torrent(Base):
     timestamp = Column(String(50))  # Storing as ISO string to match existing data
     submitted_by = Column(String(50))
     block_number = Column(Integer)
+    exact_source = Column(Text)  # URL to the .torrent file or source page
 
     def to_dict(self):
         return {
@@ -25,6 +26,7 @@ class Torrent(Base):
             "timestamp": self.timestamp,
             "submitted_by": self.submitted_by,
             "block_number": self.block_number,
+            "exact_source": self.exact_source,
         }
 
 

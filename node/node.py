@@ -1,189 +1,182 @@
 import json
 import logging
 import os
-import time
 import sys
+import time
+from typing import Dict
 
+from dotenv import load_dotenv
 from nectar import Hive
 from nectar.block import Blocks
 from nectar.blockchain import Blockchain
-from dotenv import load_dotenv
+from sqlalchemy.orm import Session
 
 # Add parent directory to path to import utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.database import get_db_engine, get_session, Torrent, Setting
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(message)s",
-    datefmt="%m/%d/%Y %I:%M:%S %p",
-)
-logger = logging.getLogger("MagnetBank Node")
-logger.setLevel(logging.INFO)
+from utils.database import Setting, Torrent, get_db_engine, get_session
 
 # Load environment variables
 load_dotenv()
 
-# Admin account for DMCA takedown and Changes to categories
+# Configuration
 ADMIN_ACCOUNT = os.getenv("ADMIN_ACCOUNT")
-
-# Database setup
+HIVE_NODES = os.getenv("HIVE_NODE", "https://api.hive.blog").split(",")
+GENISYS_BLOCK = int(os.getenv("GENISYS_BLOCK", 0))
 DB_PATH = os.getenv("SQLITE_DB", "magnetbank.db")
-engine = get_db_engine(DB_PATH)
-db_session = get_session(engine)
 
-# Connect to Hive blockchain
-hive_nodes = os.getenv("HIVE_NODE")
-hive = Hive(nodes=hive_nodes)
-
-
-def get_last_block():
-    """
-    Retrieve the last block number from the database.
-
-    Returns
-    -------
-    int: The last block number.
-    """
-    last_block_data = (
-        db_session.query(Setting).filter_by(id="info", key="last_block").first()
-    )
-    if last_block_data and last_block_data.value:
-        return int(last_block_data.value)
-
-    # If the last block number is not found, use the GENISYS_BLOCK environment variable
-    last_block = int(os.getenv("GENISYS_BLOCK", 0))
-    set_block("last_block", last_block)
-
-    # Matching original logic for 'genisys' key
-    set_block("genisys", last_block)
-
-    logger.warning(f"Last block not found using root starting block {last_block}.")
-    return last_block
+# Logging Setup
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("MagnetBankNode")
 
 
-def set_block(key, value):
-    """
-    Set a key-value pair in the settings collection.
+class MagnetBankNode:
+    def __init__(self):
+        self.engine = get_db_engine(DB_PATH)
+        self.hive = Hive(nodes=HIVE_NODES)
+        self.blockchain = Blockchain(blockchain_instance=self.hive)
 
-    Args:
-    ----
-    key (str): The key to set.
-    value (any): The value to set.
-    """
-    setting = db_session.query(Setting).filter_by(id="info", key=key).first()
-    if setting:
-        setting.value = str(value)
-    else:
-        setting = Setting(id="info", key=key, value=str(value))
-        db_session.add(setting)
-    db_session.commit()
+    def get_session(self) -> Session:
+        return get_session(self.engine)
 
+    def get_setting(self, session: Session, key: str, default=None) -> any:
+        setting = session.query(Setting).filter_by(id="info", key=key).first()
+        if setting:
+            try:
+                return int(setting.value)
+            except (ValueError, TypeError):
+                return setting.value
+        return default
 
-def process_custom_json_operation(block, operation):
-    """
-    Process a MagnetBank custom JSON operation.
-
-    Args:
-    ----
-    block (nectar.block.Block): The block containing the operation.
-    operation (dict): The custom JSON operation.
-    """
-    timestamp = block["timestamp"].isoformat()
-    number = block.block_num
-    submitted_by = operation["value"]["required_posting_auths"][0]
-    try:
-        json_data = json.loads(operation["value"]["json"])
-    except json.JSONDecodeError:
-        logger.warning("Invalid JSON received.")
-        return
-
-    # Check if the data is well-formed
-    if all(
-        key in json_data for key in ["hash", "file_name", "category", "announce_url"]
-    ):
-        info_hash = json_data["hash"].upper()
-
-        # Check if the hash key already exists in the database
-        existing = db_session.query(Torrent).filter_by(hash=info_hash).first()
-        if not existing:
-            new_torrent = Torrent(
-                hash=info_hash,
-                file_name=json_data["file_name"],
-                category=json_data["category"],
-                announce_url=json_data["announce_url"],
-                timestamp=timestamp,
-                submitted_by=submitted_by,
-                block_number=number,
-            )
-            db_session.add(new_torrent)
-            db_session.commit()
-            logger.info(
-                f"Hash key {info_hash} added to database - {json_data['file_name']} by {submitted_by}"
-            )
+    def set_setting(self, session: Session, key: str, value: any):
+        setting = session.query(Setting).filter_by(id="info", key=key).first()
+        if setting:
+            setting.value = str(value)
         else:
-            logger.warning(f"Hash key {info_hash} already exists in the database.")
-    elif json_data.get("action") and submitted_by == ADMIN_ACCOUNT:
-        info_hash = json_data.get("hash", "").upper()
-        if json_data.get("action") == "update":
-            torrent = db_session.query(Torrent).filter_by(hash=info_hash).first()
-            if torrent:
-                torrent.category = json_data["category"]
-                db_session.commit()
-                logger.info(
-                    f"Hash key {info_hash} updated to {json_data['category']} by {submitted_by}"
+            setting = Setting(id="info", key=key, value=str(value))
+            session.add(setting)
+        session.commit()
+
+    def process_operation(
+        self, session: Session, block_num: int, timestamp: str, op: Dict
+    ):
+        if op["type"] != "custom_json_operation" or op["value"]["id"] != "MagnetBank":
+            return
+
+        try:
+            submitted_by = op["value"]["required_posting_auths"][0]
+            json_data = json.loads(op["value"]["json"])
+        except (IndexError, json.JSONDecodeError, KeyError) as e:
+            logger.warning(f"Malformed operation in block {block_num}: {e}")
+            return
+
+        # Handle New Torrent Entry
+        if all(
+            key in json_data
+            for key in ["hash", "file_name", "category", "announce_url"]
+        ):
+            info_hash = json_data["hash"].upper()
+
+            existing = session.query(Torrent).filter_by(hash=info_hash).first()
+            if not existing:
+                new_torrent = Torrent(
+                    hash=info_hash,
+                    file_name=json_data["file_name"],
+                    category=json_data["category"].upper(),
+                    announce_url=json_data["announce_url"],
+                    exact_source=json_data.get("exact_source"),
+                    timestamp=timestamp,
+                    submitted_by=submitted_by,
+                    block_number=block_num,
                 )
-        elif json_data.get("action") == "delete":
-            torrent = db_session.query(Torrent).filter_by(hash=info_hash).first()
+                session.add(new_torrent)
+                session.commit()
+                logger.info(
+                    f"ADDED: {info_hash} | {json_data['file_name']} by @{submitted_by}"
+                )
+            else:
+                logger.debug(f"DUPLICATE: {info_hash} already in database.")
+
+        # Handle Admin Actions
+        elif json_data.get("action") and submitted_by == ADMIN_ACCOUNT:
+            action = json_data.get("action")
+            info_hash = json_data.get("hash", "").upper()
+            torrent = session.query(Torrent).filter_by(hash=info_hash).first()
+
             if torrent:
-                db_session.delete(torrent)
-                db_session.commit()
-                logger.info(f"Hash key {info_hash} deleted by {submitted_by}")
-    else:
-        logger.warning("Malformed data received.")
+                if action == "update":
+                    torrent.category = json_data.get(
+                        "category", torrent.category
+                    ).upper()
+                    session.commit()
+                    logger.info(
+                        f"UPDATED: {info_hash} category set to {torrent.category}"
+                    )
+                elif action == "delete":
+                    session.delete(torrent)
+                    session.commit()
+                    logger.info(f"DELETED: {info_hash}")
 
+    def sync(self):
+        logger.info("Initializing synchronization...")
 
-def process_blocks(start_block):
-    """
-    Process blocks starting from a given block number.
+        with self.get_session() as session:
+            last_block = self.get_setting(session, "last_block")
+            if last_block is None:
+                last_block = GENISYS_BLOCK
+                self.set_setting(session, "last_block", last_block)
+                self.set_setting(session, "genisys", last_block)
+                logger.info(f"Starting from GENISYS block: {last_block}")
+            else:
+                logger.info(f"Resuming from block: {last_block}")
 
-    Args:
-    ----
-    start_block (int): The block number to start processing from.
-    """
-    blocks = Blocks(start_block, 1000, blockchain_instance=hive)
-    # Process each block
-    for block in blocks:
-        last_block = block.block_num
-        # Check if the block contains a MagnetBank custom JSON operation
-        for operation in block.operations:
-            if (
-                operation["type"] == "custom_json_operation"
-                and operation["value"]["id"] == "MagnetBank"
-            ):
-                process_custom_json_operation(block, operation)
+        while True:
+            try:
+                current_head = self.blockchain.get_current_block_num()
 
-        # Periodically update the last block number
-        if last_block % 10 == 0:
-            set_block("last_block", last_block)
-            logger.info(f"Processed up to block {last_block}")
+                if current_head > last_block:
+                    # Process blocks in chunks
+                    batch_size = 100
+                    stop_block = min(last_block + batch_size, current_head)
 
-    set_block("last_block", last_block)
+                    logger.info(
+                        f"Scanning blocks: {last_block + 1} to {stop_block} (Head: {current_head})"
+                    )
+
+                    blocks = Blocks(
+                        last_block + 1, stop_block, blockchain_instance=self.hive
+                    )
+
+                    with self.get_session() as session:
+                        for block in blocks:
+                            ts = block["timestamp"].isoformat()
+                            bn = block.block_num
+                            for op in block.operations:
+                                self.process_operation(session, bn, ts, op)
+                            last_block = bn
+
+                        # Update progress in DB
+                        self.set_setting(session, "last_block", last_block)
+                        self.set_setting(session, "head_block", current_head)
+
+                else:
+                    logger.debug("Chain head reached. Waiting for new blocks...")
+                    time.sleep(3)
+
+            except Exception as e:
+                logger.error(f"Sync error: {e}")
+                time.sleep(10)
+                # Re-initialize hive connection on error
+                self.hive = Hive(nodes=HIVE_NODES)
+                self.blockchain = Blockchain(blockchain_instance=self.hive)
 
 
 if __name__ == "__main__":
-    while True:
-        try:
-            last_block = get_last_block()
-            blockchain = Blockchain(blockchain_instance=hive)
-            current_block = blockchain.get_current_block_num()
-
-            if current_block > last_block:
-                process_blocks(last_block + 1)
-            else:
-                logger.info("Waiting for new blocks...")
-                time.sleep(3)
-        except Exception as e:
-            logger.error(f"Error processing blocks: {e}")
-            time.sleep(10)
+    node = MagnetBankNode()
+    try:
+        node.sync()
+    except KeyboardInterrupt:
+        logger.info("Node shutdown requested by user.")

@@ -1,5 +1,3 @@
-const signatureSent = false; // flag to indicate if signature was sent successfully
-
 // Function to create a cookie
 const createCookie = (name, value, days) => {
   const expires = days
@@ -26,67 +24,76 @@ const getCookie = (name) => {
 // Function to check if the signature has been sent successfully and show the admin form
 const checkSignatureStatus = () => {
   if (getCookie("signatureSent")?.toLowerCase() === "true") {
-    $("#admin_form").show();
-    $("#send_signature").hide();
+    $("#admin_panel").removeClass("d-none");
+    $("#login_panel").addClass("d-none");
   }
 };
 
 $("#send_signature").click(() => {
-  hive_keychain.requestSignBuffer(
-    $("#username").val() || null,
-    "Admin Panel",
-    "Active",
-    (response) => {
-      console.log("sign", response);
-      createCookie("signatureSent", true, 1); // create the cookie
-      checkSignatureStatus(); // check the signature status and show the admin form
-    },
-    null,
-    "Signature"
-  );
+  const username = $("#username").val();
+  if (window.hive_keychain) {
+    hive_keychain.requestSignBuffer(
+      username || null,
+      "Admin Panel Authentication",
+      "Active",
+      (response) => {
+        if (response.success) {
+          createCookie("signatureSent", "true", 1);
+          checkSignatureStatus();
+        } else {
+          alert("Signature failed: " + response.message);
+        }
+      },
+      null,
+      "Signature"
+    );
+  } else {
+    alert("Hive Keychain not found!");
+  }
 });
 
 // Update custom_json textarea with JSONified data
 const updateCustomJson = () => {
+  const action = $("#action").val();
   const customJson = {
-    action: $("#action").val(),
-    hash: $("#hash").val(),
-    category: $("#category").val(),
+    action: action,
+    hash: $("#hash").val().toUpperCase(),
   };
-  $("#custom_json").val(JSON.stringify(customJson));
+
+  if (action === "update") {
+    customJson.category = $("#category").val();
+  }
+
+  $("#custom_json").val(JSON.stringify(customJson, null, 2));
 };
+
 // Add event listeners to input fields
-$("#action, #hash, #category").on("input", updateCustomJson);
+$("#action, #hash, #category").on("input change", updateCustomJson);
 
 // Send Custom JSON request
 $("#send_custom").on("click", () => {
-  try {
-    const customJson = JSON.parse($("#custom_json").val());
+  const username = $("#username").val();
+  const jsonStr = $("#custom_json").val();
+
+  if (window.hive_keychain) {
     hive_keychain.requestCustomJson(
-      $("#username").val(),
+      username,
       "MagnetBank",
       "Posting",
-      JSON.stringify(customJson),
-      "Admin Changes",
+      jsonStr,
+      "Admin Action: " + $("#action").val(),
       (response) => {
         console.log(response);
-        $("#msg")
-          .removeClass("alert-danger")
-          .addClass("alert-success")
-          .text(response.message);
+        const msgPanel = $("#msg_panel");
+        msgPanel.removeClass("d-none");
+        $("#msg_text").text(response.message || (response.success ? "Success" : "Failed"));
       }
     );
-  } catch (error) {
-    console.error(error);
-    $("#msg")
-      .removeClass("alert-success")
-      .addClass("alert-danger")
-      .text(`Error: ${error.message}`);
+  } else {
+    alert("Hive Keychain not found!");
   }
 });
 
-// Hide admin form initially
-$("#admin_form").hide();
-
-// Check the signature status and show the admin form
+// Check the signature status on load
 checkSignatureStatus();
+updateCustomJson();

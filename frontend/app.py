@@ -163,16 +163,20 @@ def add(category=None):
         magnet = urllib.parse.unquote(magnet)
     category = request.args.get("category")
 
-    message = "Please add a valid magnet link"
+    message = None
     torrent_json = None
 
     if magnet:
-        if not re.match(r"magnet:\?xt=urn:btih:[a-fA-F0-9]{40}&", magnet):
+        if not re.match(r"magnet:\?xt=urn:btih:[a-fA-F0-9]{40}", magnet):
             message = "Invalid magnet link"
         else:
+            # Check if there are parts after the hash
             magnet_parts = magnet.split("&")
             info_hash = magnet_parts[0].split(":")[3].upper()
-            file_name = urllib.parse.unquote(magnet_parts[1].split("=")[1])
+
+            file_name = "Unknown"
+            if len(magnet_parts) > 1 and magnet_parts[1].startswith("dn="):
+                file_name = urllib.parse.unquote(magnet_parts[1].split("=")[1])
 
             # Simple metadata extraction
             announce_url = "http://tracker.openbittorrent.com:80/announce"
@@ -206,24 +210,26 @@ def add(category=None):
 
 @app.route("/convert", methods=["POST", "GET"])
 def convert(uploaded_file=None):
-    if request.method == "POST":
-        uploaded_file = request.files["torrent"]
+    message = None
+    magnet_link = None
 
-    if (
-        not uploaded_file
-        or uploaded_file.filename == ""
-        or not uploaded_file.filename.endswith(".torrent")
-    ):
-        message = "Please upload a valid torrent file"
-        magnet_link = None
-    else:
-        torrent_data = uploaded_file.read()
-        magnet_link = generate_magnet_link(torrent_data)
-        message = (
-            "Magnet link generated successfully"
-            if magnet_link
-            else "Failed to generate magnet link"
-        )
+    if request.method == "POST":
+        uploaded_file = request.files.get("torrent")
+
+        if (
+            not uploaded_file
+            or uploaded_file.filename == ""
+            or not uploaded_file.filename.endswith(".torrent")
+        ):
+            message = "Please upload a valid torrent file"
+        else:
+            torrent_data = uploaded_file.read()
+            magnet_link = generate_magnet_link(torrent_data)
+            message = (
+                "Magnet link generated successfully"
+                if magnet_link
+                else "Failed to generate magnet link"
+            )
 
     return render_template(
         "convert.html",

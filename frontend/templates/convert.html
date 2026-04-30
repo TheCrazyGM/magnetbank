@@ -1,91 +1,93 @@
-{% extends "base.html" %} {% block content %}
-  <h1 class="text-center">Convert Torrent File to Magnet Link</h1>
-  <hr class="mb-4" />
-
-  <div class="container">
-    {% if msg %}
-      <div
-        id="msg"
-        class="alert alert-{{ 'success' if magnet else 'danger' }}"
-        role="alert"
-      >
-        {{ msg }}
-      </div>
-    {% endif %}
-
-    <form
-      class="row g-3"
-      method="POST"
-      action="{{ url_for('convert') }}"
-      enctype="multipart/form-data"
-    >
-      <div class="col-2">
-        <label for="torrent" class="form-label">Torrent File:</label>
-      </div>
-      <div class="col-auto">
-        <input
-          type="file"
-          class="form-control"
-          id="torrent"
-          name="torrent"
-          accept=".torrent"
-        />
-      </div>
-      <div class="col-auto">
-        <button type="submit" class="btn btn-outline-success mb-3">
-          Convert to Magnet
-        </button>
-      </div>
-    </form>
-
-    {% if magnet %}
-      <form class="row g-3" method="GET" action="/add">
-        <div class="row g-3">
-          <div class="col-2">
-            <label for="magnet" class="form-label">Magnet Link:</label>
-          </div>
-          <div class="col-10">
-            <input
-              type="text"
-              class="form-control"
-              id="magnet"
-              name="magnet"
-              value="{{ magnet }}"
-              readonly
-            />
-          </div>
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-5">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="text-neon display-4 mb-3">DATA EXTRACTION: CONVERT TORRENT</h1>
+                <div class="header-line mx-auto"></div>
+            </div>
         </div>
-        <div class="row g-3">
-          <div class="col-2">
-            <label for="category" class="form-label">Category:</label>
-          </div>
-          <div class="col-auto">
-            <select
-              class="form-select form-control"
-              id="category"
-              name="category"
-              required
-            >
-              <option value=""></option>
-              <option value="MOVIE">MOVIE</option>
-              <option value="TV">TV</option>
-              <option value="VIDEO">VIDEO</option>
-              <option value="MUSIC">MUSIC</option>
-              <option value="AUDIO">AUDIO</option>
-              <option value="APP">APP</option>
-              <option value="GAME">GAME</option>
-              <option value="PORN">PORN</option>
-              <option value="TEXT">TEXT</option>
-              <option value="OTHER">OTHER</option>
-            </select>
-          </div>
-          <div class="col-auto">
-            <button type="submit" class="btn btn-outline-success mb-3">
-              Add Magnet
-            </button>
-          </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                {% if msg %}
+                    <div class="status-panel p-3 mb-4 {{ 'border-success' if magnet else 'border-danger' }}">
+                        <span class="{{ 'text-neon' if magnet else 'text-danger' }}">
+                            <i class="la {{ 'la-check-circle' if magnet else 'la-exclamation-triangle' }}"></i>
+                            {{ msg }}
+                        </span>
+                    </div>
+                {% endif %}
+
+                {% if not magnet %}
+                    <div class="status-panel p-4 p-md-5">
+                        <form
+                            class="row g-4 align-items-end"
+                            method="POST"
+                            action="{{ url_for('convert') }}"
+                            enctype="multipart/form-data"
+                        >
+                            <div class="col-md-9">
+                                <label for="torrent" class="form-label text-dim small">UPLOAD .TORRENT FILE</label>
+                                <input
+                                    type="file"
+                                    class="form-control bg-dark border-secondary text-neon"
+                                    id="torrent"
+                                    name="torrent"
+                                    accept=".torrent"
+                                    required
+                                />
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn-neon w-100 py-2">EXTRACT</button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="status-panel p-4 p-md-5">
+                        <h3 class="text-neon mb-4"><i class="la la-magnet"></i> EXTRACTED URI</h3>
+
+                        <form method="GET" action="{{ url_for('add') }}">
+                            <div class="mb-4">
+                                <label for="magnet" class="form-label text-dim small">MAGNET LINK</label>
+                                <input
+                                    type="text"
+                                    class="form-control bg-dark border-secondary text-neon"
+                                    id="magnet"
+                                    name="magnet"
+                                    value="{{ magnet }}"
+                                    readonly
+                                />
+                            </div>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-8">
+                                    <label for="category" class="form-label text-dim small">CLASSIFICATION</label>
+                                    <select
+                                        class="form-select bg-dark border-secondary text-neon"
+                                        id="category"
+                                        name="category"
+                                        required
+                                    >
+                                        <option value="" disabled selected>SELECT CATEGORY...</option>
+                                        <option value="VIDEO">VIDEO</option>
+                                        <option value="AUDIO">AUDIO</option>
+                                        <option value="APP">APP</option>
+                                        <option value="TEXT">TEXT</option>
+                                        <option value="OTHER">OTHER</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn-neon w-100 py-2">STAGING</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="mt-4 text-center">
+                            <a href="{{ url_for('convert') }}" class="text-dim small no-underline">← RESET EXTRACTOR</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-      </form>
-    {% endif %}
-  </div>
+    </div>
 {% endblock %}

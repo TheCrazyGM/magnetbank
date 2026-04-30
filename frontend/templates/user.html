@@ -19,44 +19,6 @@
 
         <div class="header-line mb-5"></div>
 
-        <div class="row g-4">
-            {% for torrent in torrents %}
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="torrent-card d-flex flex-column h-100">
-                        <div class="card-header-accent"></div>
-                        <div class="p-4 flex-grow-1">
-                            <a href="{{ url_for('serve_torrent', category=torrent.category, filename=torrent.hash) }}" class="torrent-title mb-3">
-                                {{ torrent.file_name }}
-                            </a>
-                            <div class="torrent-meta-grid">
-                                <div class="meta-item">
-                                    <label>CAT</label>
-                                    <span>{{ torrent.category }}</span>
-                                </div>
-                                <div class="meta-item">
-                                    <label>BLOCK</label>
-                                    <a href="https://hivehub.dev/b/{{ torrent.block_number }}" target="_blank">#{{ torrent.block_number }}</a>
-                                </div>
-                                <div class="meta-item w-100">
-                                    <label>DATE</label>
-                                    <span>{{ torrent.timestamp }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-4 pt-0 mt-auto">
-                            <div class="d-grid">
-                                <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}" class="btn-neon">
-                                    <i class="la la-magnet"></i> DOWNLOAD
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        <div class="d-flex justify-content-center mt-5 mb-5">
-            {{ pagination.links }}
-        </div>
+        {% include "torrents.html" %}
     </div>
 {% endblock %}

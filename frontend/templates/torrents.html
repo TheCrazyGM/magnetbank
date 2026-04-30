@@ -20,8 +20,13 @@
                             <label>DATE</label>
                             <span>{{ torrent.timestamp }}</span>
                         </div>
-                    </div>
-                </div>
+                        {% if torrent.exact_source %}
+                            <div class="meta-item">
+                                <label>SOURCE</label>
+                                <a href="{{ torrent.exact_source }}" target="_blank"><i class="la la-external-link-square"></i></a>
+                            </div>
+                        {% endif %}
+                    </div>                </div>
                 <div class="p-4 pt-0 mt-auto">
                     <div class="d-grid">
                         <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}" class="btn-neon">

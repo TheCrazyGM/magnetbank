@@ -38,8 +38,13 @@
                             <label>ANNOUNCE URL</label>
                             <span class="small">{{ torrent.announce_url }}</span>
                         </div>
+                        {% if torrent.exact_source %}
+                            <div class="meta-item w-100">
+                                <label>EXACT SOURCE</label>
+                                <a href="{{ torrent.exact_source }}" target="_blank" class="small text-neon">{{ torrent.exact_source }}</a>
+                            </div>
+                        {% endif %}
                     </div>
-
                     <div class="d-grid gap-3">
                         <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}" class="btn-neon p-3 fs-5">
                             <i class="la la-magnet"></i> INITIALIZE MAGNET LINK

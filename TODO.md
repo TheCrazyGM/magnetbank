@@ -1,23 +1,27 @@
-# TODO
+# TODO Checklist
 
-Add exact_source to the database. Update the node to feed that data, and the frontend to make use of it as well, for reference here is what current custom_json has been looking like for some time.
+## Modernization Tasks
 
-```json
-{
-  "file_name": "_Ferrari on Water_ ArgoJet at Velocity Valley NZ (100km_h) 1080p.mp4",
-  "hash": "EEQ6V5DBEIQ2DNHSMHZEP455JYKLVQGN",
-  "announce_url": "wss://blurt.media:443/tracker/socket",
-  "category": "VIDEO",
-  "exact_source": "https://blurt.media:443/lazy-static/torrents/af9fe8a7-e4a2-4344-8941-14373fc7b15e-1080-hls.torrent"
-}
-```
+- [x] **1. Template Consolidation**
+  - [x] Refactor `list.html` to use `torrents.html`.
+  - [x] Refactor `user.html` to use `torrents.html`.
+  - [x] Ensure all list views are consistent.
 
-```json
-{
-  "file_name": "Fall Asleep in a Cozy Cabin at Night 🌙 Soft Wind, Crickets & Nature Sounds 1080p.mp4",
-  "hash": "PKDHF4IVHTGKCKS4RXE2KZKF7W74CDKW",
-  "announce_url": "wss://blurt.media:443/tracker/socket",
-  "category": "VIDEO",
-  "exact_source": "https://blurt.media:443/lazy-static/torrents/8ab602ad-1f59-4d49-a8e9-d38447fa0e04-1080-hls.torrent"
-}
-```
+- [x] **2. Form Category Update**
+  - [x] Update `add.html` to use the new category list (VIDEO, AUDIO, APP, TEXT, OTHER).
+  - [x] Update `convert.html` and `admin.html`.
+
+- [x] **3. Form Validation Polish**
+  - [x] Fix `add.html`: Only show validation messages after an actual submission attempt.
+  - [x] Fix `convert.html`: Only show validation messages after an actual upload attempt.
+
+- [x] **4. Exact Source Integration**
+  - [x] Add `exact_source` column to the `torrents` table in `utils/database.py`.
+  - [x] Update `node/node.py` to ingest `exact_source` from custom_json operations.
+  - [x] Update `frontend/templates/details.html` to display the `exact_source` link.
+  - [x] Update `frontend/templates/torrents.html` (card grid) to show a source icon.
+
+- [x] **5. Node Modernization**
+  - [x] Refactor `node/node.py` for performance and best practices.
+  - [x] Improve error handling and Hive node rotation/failover.
+  - [x] Implement cleaner logging and batch processing.
