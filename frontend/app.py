@@ -2,6 +2,7 @@ import re
 import urllib.parse
 import os
 import sys
+import json
 
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -29,8 +30,6 @@ scheduler = BackgroundScheduler()
 
 # Define a function that wraps `update_announce_urls`
 def update_announce_urls_job():
-    # Note: update_announce_urls might need refactoring too if it uses mongo
-    # For now, let's keep it as is or handle it in helpers.py
     try:
         update_announce_urls()
     except Exception as e:
@@ -239,19 +238,20 @@ def about():
 
     # Get all info settings
     info_settings = g.db.query(Setting).filter_by(id="info").all()
-    latest_info = {
-        s.key: (int(s.value) if s.value.isdigit() else s.value) for s in info_settings
-    }
+    latest_info = {}
+    for s in info_settings:
+        try:
+            latest_info[s.key] = int(s.value)
+        except (ValueError, TypeError):
+            latest_info[s.key] = s.value
 
-    if "last_block" not in latest_info:
-        latest_info["last_block"] = "Unknown"
-    if "genisys" not in latest_info:
-        latest_info["genisys"] = (
-            0  # Default to 0 to avoid division by zero in template if missing
-        )
+    # Ensure critical keys exist as integers for template calculations
+    for key in ["last_block", "genisys", "head_block"]:
+        if key not in latest_info or not isinstance(latest_info[key], int):
+            latest_info[key] = 0
 
     # Get Hive head block
-    head_block_number = "Unknown"
+    current_head_block = 0
     try:
         response = requests.post(
             HIVE_NODE,
@@ -263,15 +263,16 @@ def about():
             },
             timeout=5,
         )
-        head_block_number = response.json()["result"]["head_block_number"]
+        current_head_block = int(response.json()["result"]["head_block_number"])
     except Exception:
-        pass
+        # If we can't get actual head, use the head_block from our DB
+        current_head_block = latest_info.get("head_block", 0)
 
     return render_template(
         "about.html",
         total_torrents=total_torrents,
         latest_info=latest_info,
-        current_head_block=head_block_number,
+        current_head_block=current_head_block,
     )
 
 
@@ -324,8 +325,6 @@ def announce_urls_api():
     # Fetch all announce URLs from settings
     result = g.db.query(Setting).filter_by(id="announce_list", key="urls").first()
     if result:
-        import json
-
         return jsonify(json.loads(result.value))
     return jsonify([])
 
