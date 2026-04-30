@@ -253,20 +253,29 @@ def about():
     # Get Hive head block
     current_head_block = 0
     try:
+        hive_url = HIVE_NODE or "https://api.hive.blog"
         response = requests.post(
-            HIVE_NODE,
+            hive_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "condenser_api.get_dynamic_global_properties",
                 "params": [],
                 "id": 1,
             },
-            timeout=5,
+            timeout=10,
         )
-        current_head_block = int(response.json()["result"]["head_block_number"])
-    except Exception:
+        if response.status_code == 200:
+            res_json = response.json()
+            if "result" in res_json and "head_block_number" in res_json["result"]:
+                current_head_block = int(res_json["result"]["head_block_number"])
+    except Exception as e:
+        print(f"Error fetching live head block: {e}")
         # If we can't get actual head, use the head_block from our DB
         current_head_block = latest_info.get("head_block", 0)
+
+    # Final fallback if still 0
+    if current_head_block == 0:
+        current_head_block = latest_info.get("last_block", 0)
 
     return render_template(
         "about.html",

@@ -1,60 +1,75 @@
-{% extends "base.html" %} {% block content %}
-<div class="container my-5">
-  <h1 class="text-center">About MagnetBank</h1>
-  <hr />
-
-  <div class="row">
-    <div class="col-md-6">
-      <h2>What is this?</h2>
-      <p>
-        At MagnetBank, we understand the importance of privacy and security when
-        it comes to accessing torrent metadata. That's why we only store the
-        hash, filename, and announce URL of each torrent. This means that there
-        are no actual torrents or magnet links stored on our platform.
-      </p>
-
-      <p>
-        Our links are generated dynamically, ensuring that users have access to
-        the most up-to-date announce URLs from a public list.
-      </p>
-    </div>
-
-    <div class="col-md-6">
-      <h2>Current Status</h2>
-      <p>Current total: <strong>{{ total_torrents }}</strong> magnet links.</p>
-
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Node Current</th>
-            <th>Node Last Head</th>
-            <th>Actual Head</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ latest_info.last_block }}</td>
-            <td>{{ latest_info.head_block }}</td>
-            <td>{{ current_head_block }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      {% set progress_percentage = ((latest_info.last_block-latest_info.genisys)
-      / (current_head_block-latest_info.genisys) * 100) | round(2) %}
-      <div class="progress">
-        <div
-          class="progress-bar"
-          style="width: {{ progress_percentage }}%;"
-          aria-valuenow="{{ progress_percentage }}"
-          aria-valuemin="0"
-          aria-valuemax="100"
-        >
-          {{ progress_percentage }}%
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="text-neon display-4 mb-3">SYSTEM PROTOCOL: ABOUT</h1>
+            <div class="header-line mx-auto"></div>
         </div>
-      </div>
     </div>
-  </div>
-</div>
 
+    <div class="row g-5">
+        <div class="col-lg-7">
+            <div class="status-panel p-4">
+                <h3 class="text-neon mb-4"><i class="la la-info-circle"></i> CORE MISSION</h3>
+                <div class="mission-text">
+                    <p>At <span class="text-neon">MagnetBank</span>, we facilitate secure, decentralized access to torrent metadata via the Hive blockchain.</p>
+                    <p>Our architecture is strictly <b>non-custodial</b>. We do not host files or magnet links. Instead, we dynamically reassemble metadata from blockchain entries, ensuring total transparency and resilience.</p>
+                    <p>Every entry you see is a verified block on the Hive chain, processed by our global node network.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="status-panel p-4">
+                <h3 class="text-neon mb-4"><i class="la la-broadcast-tower"></i> SYNC STATUS</h3>
+
+                <div class="stats-grid mb-4">
+                    <div class="stat-box">
+                        <label>TOTAL MAGNETS</label>
+                        <div class="stat-value">{{ "{:,}".format(total_torrents) }}</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-terminal">
+                        <thead>
+                            <tr>
+                                <th>MODULE</th>
+                                <th class="text-end">BLOCK HEIGHT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>LOCAL_NODE</td>
+                                <td class="text-end text-neon">{{ "{:,}".format(latest_info.last_block) }}</td>
+                            </tr>
+                            <tr>
+                                <td>LAST_KNOWN_HEAD</td>
+                                <td class="text-end">{{ "{:,}".format(latest_info.head_block) }}</td>
+                            </tr>
+                            <tr class="highlight-row">
+                                <td>LIVE_BLOCKCHAIN</td>
+                                <td class="text-end text-neon">{{ "{:,}".format(current_head_block) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if latest_info.genisys and current_head_block > latest_info.genisys %}
+                    {% set progress_percentage = (((latest_info.last_block - latest_info.genisys) / (current_head_block - latest_info.genisys)) * 100) | round(2) %}
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-dim">SYNC PROGRESS</span>
+                            <span class="text-neon">{{ progress_percentage }}%</span>
+                        </div>
+                        <div class="progress progress-neon">
+                            <div class="progress-bar" style="width: {{ progress_percentage }}%"></div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

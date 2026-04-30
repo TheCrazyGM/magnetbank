@@ -181,6 +181,71 @@ h1, h2, h3, .navbar-brand, .nav-link, .btn-neon, .torrent-title {
   background: rgba(57, 255, 20, 0.1) !important;
 }
 
+/* System Status & Terminal Components */
+.status-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  border-radius: 4px;
+}
+
+.table-terminal {
+  background: transparent !important;
+  font-size: 0.85rem;
+}
+
+.table-terminal th {
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.table-terminal td {
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  padding: 15px 0;
+  vertical-align: middle;
+}
+
+.highlight-row td {
+  background: rgba(57, 255, 20, 0.04);
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.02);
+  padding: 1.5rem;
+  border-left: 4px solid var(--neon-green);
+  margin-bottom: 1.5rem;
+}
+
+.stat-box label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-family: "Gugi", cursive;
+  font-size: 2.2rem;
+  color: var(--neon-green);
+  line-height: 1;
+}
+
+.progress-neon {
+  height: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.progress-neon .progress-bar {
+  background: var(--neon-green);
+  box-shadow: 0 0 15px var(--neon-green);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--dark-bg); }
