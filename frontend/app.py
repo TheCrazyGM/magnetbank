@@ -45,7 +45,11 @@ scheduler.add_job(update_announce_urls_job, "cron", hour=2)
 scheduler.start()
 
 # Create Flask app instance
-app = Flask("magnetbank")
+app = Flask(
+    "magnetbank",
+    template_folder="templates",
+    static_folder="static",
+)
 
 # Database setup
 engine = get_db_engine(DB_PATH)
