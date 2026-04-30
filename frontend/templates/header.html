@@ -1,31 +1,24 @@
-{% block header %} {% set nav_links = [{'url': url_for('index'), 'text': 'All
-Torrents'}, {'url': url_for('index', category='MOVIE'), 'text': 'Movies'},
-{'url': url_for('index', category='TV'), 'text': 'TV'}, {'url': url_for('index',
-category='VIDEO'), 'text': 'Video'}, {'url': url_for('index', category='MUSIC'),
-'text': 'Music'}, {'url': url_for('index', category='AUDIO'), 'text': 'Audio'},
-{'url': url_for('index', category='APP'), 'text': 'Apps'}, {'url':
-url_for('index', category='GAME'),'text': 'Games'}, {'url': url_for('index',
-category='PORN'), 'text': 'Porn'}, {'url': url_for('index', category='TEXT'),
-'text': 'Text'}, {'url': url_for('index', category='OTHER'), 'text': 'Other'},
-{'url': url_for('add'), 'text': 'Add Magnet'}, {'url': url_for('convert'),
-'text': 'Convert Torrent'}, {'url': url_for('about'), 'text': 'About'}] %}
+{% block header %}
+{% set nav_links = [
+    {'url': url_for('index'), 'text': 'All'},
+    {'url': url_for('index', category='VIDEO'), 'text': 'Video'},
+    {'url': url_for('index', category='AUDIO'), 'text': 'Audio'},
+    {'url': url_for('index', category='APP'), 'text': 'Apps'},
+    {'url': url_for('index', category='TEXT'), 'text': 'Text'},
+    {'url': url_for('index', category='OTHER'), 'text': 'Other'},
+    {'url': url_for('add'), 'text': 'Add'},
+    {'url': url_for('convert'), 'text': 'Convert'},
+    {'url': url_for('about'), 'text': 'About'}
+] %}
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg">
   <div class="container-fluid">
     <a class="navbar-brand" href="/">
-      <div class="d-flex align-items-center">
-        <div class="col-auto">
-          <img
-            src="/static/img/logo.png"
-            alt="logo"
-            class="d-inline-block align-text-center"
-            height="48"
-            width="48"
-          />
-        </div>
-        <div>
-          InfinteXLinks'<br />
-          MagnetBank
+      <div class="brand-container">
+        <img src="/static/img/logo.png" alt="logo" class="brand-logo" height="48" width="48" />
+        <div class="brand-text">
+          <span>InfinteXLinks'</span>
+          <span class="brand-sub">MagnetBank</span>
         </div>
       </div>
     </a>
@@ -41,27 +34,24 @@ category='PORN'), 'text': 'Porn'}, {'url': url_for('index', category='TEXT'),
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div
-      class="collapse navbar-collapse justify-content-center mb-3 mb-lg-0"
-      id="navbarNav"
-    >
+    <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         {% for link in nav_links %}
-        <li class="{{'active' if request.path == link.url else ''}} nav-item">
-          <a href="{{link.url}}" class="nav-link">{{link.text}}</a>
+        <li class="nav-item">
+          <a href="{{link.url}}" class="nav-link {{'active' if request.path == link.url else ''}}">{{link.text}}</a>
         </li>
         {% endfor %}
       </ul>
-      <form class="d-flex ms-auto" action="{{ url_for('index') }}" method="GET">
+      <form class="search-form d-flex" action="{{ url_for('index') }}" method="GET">
         <input
-          class="form-control me-2"
+          class="form-control"
           type="search"
-          placeholder="Keyword Search"
+          placeholder="Search hashes, files, users..."
           aria-label="Search"
           name="q"
           value="{{ request.args.get('q', '') }}"
         />
-        <button class="btn btn-outline-success" type="submit">Filter</button>
+        <button class="btn-neon" type="submit">SCAN</button>
       </form>
     </div>
   </div>

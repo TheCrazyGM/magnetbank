@@ -1,43 +1,178 @@
 :root {
-  --bs-border-color-translucent: rgba(0, 0, 0, 0.5);
+  --neon-green: #39ff14;
+  --neon-green-glow: rgba(57, 255, 20, 0.3);
+  --dark-bg: #0a0b0e;
+  --card-bg: rgba(20, 22, 26, 0.8);
+  --text-main: #e0e0e0;
+  --text-dim: #a0a0a0;
+  --border-color: rgba(57, 255, 20, 0.15);
 }
 
 body {
+  background-color: var(--dark-bg);
+  color: var(--text-main);
   font-family: "Oxygen Mono", monospace;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.05) 0%, transparent 50%),
+    linear-gradient(rgba(57, 255, 20, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 20px 20px, 20px 20px;
+  min-height: 100vh;
 }
 
-a {
-  color: var(--bs-green);
-  text-decoration: none;
+h1, h2, h3, .navbar-brand, .nav-link, .btn-neon {
+  font-family: "Gugi", cursive;
+  text-transform: uppercase;
 }
 
-h1,
-h2,
-.nav-item,
-.navbar-brand {
-  font-family: "Gugi", monospace;
+/* Navbar & Brand */
+.navbar {
+  background: rgba(10, 11, 14, 0.95);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  padding: 1rem 0;
 }
 
-.navbar-brand {
-  font-size: medium;
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.small {
-  font-size: 0.8rem;
+.brand-text {
+  line-height: 1.1;
+  display: flex;
+  flex-direction: column;
 }
 
-.no-underline {
-  text-decoration: none;
+.brand-sub {
+  color: var(--neon-green);
+  text-shadow: 0 0 10px var(--neon-green-glow);
+  font-size: 1.2rem;
 }
-/** for copyleft symbol **/
+
+.nav-link {
+  color: var(--text-dim) !important;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem !important;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--neon-green) !important;
+  text-shadow: 0 0 8px var(--neon-green-glow);
+}
+
+/* Search Form */
+.search-form .form-control {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 4px;
+  padding-left: 1rem;
+}
+
+.search-form .form-control:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--neon-green);
+  box-shadow: 0 0 10px var(--neon-green-glow);
+  color: var(--text-main);
+}
+
+.btn-neon {
+  background: transparent;
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+  padding: 0.5rem 1.5rem;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-neon:hover {
+  background: var(--neon-green);
+  color: var(--dark-bg);
+  box-shadow: 0 0 20px var(--neon-green-glow);
+}
+
+/* Torrent Table/List */
+.torrent-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.torrent-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--neon-green);
+}
+
+.torrent-title {
+  color: var(--neon-green);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  display: block;
+  word-break: break-all;
+}
+
+.torrent-meta {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.torrent-meta span b {
+  color: var(--text-main);
+}
+
+/* Pagination */
+.pagination .page-link {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  margin: 0 2px;
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--neon-green);
+  border-color: var(--neon-green);
+  color: var(--dark-bg);
+}
+
+.pagination .page-link:hover {
+  background: rgba(57, 255, 20, 0.1);
+  color: var(--neon-green);
+}
+
+/* Utils */
+.container-fluid {
+  max-width: 1400px;
+}
+
 .copy-left {
   display: inline-block;
-  text-align: right;
-  margin: 0;
-  -moz-transform: scaleX(-1);
-  -o-transform: scaleX(-1);
-  -webkit-transform: scaleX(-1);
   transform: scaleX(-1);
-  filter: FlipH;
-  -ms-filter: FlipH;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-green);
 }
