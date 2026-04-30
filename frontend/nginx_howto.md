@@ -39,7 +39,7 @@ Replace <service-name> with the actual name of your service.
 
 ## how would i do the reverse proxy with the /tmp/mongolog.sock using nginx
 
-To set up a reverse proxy with Nginx for your Flask app using the /tmp/mongolog.sock socket, you can follow  
+To set up a reverse proxy with Nginx for your Flask app using the /tmp/mongolog.sock socket, you can follow
 these steps:
 
 1 Install Nginx on your server if it's not already installed:
@@ -55,7 +55,7 @@ these steps:
     sudo nano /etc/nginx/sites-available/myapp
 ```
 
-Replace myapp with a name of your choice.  
+Replace myapp with a name of your choice.
  3 Add the following configuration to the file:
 
 ```nginx

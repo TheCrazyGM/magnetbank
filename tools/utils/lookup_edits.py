@@ -1,16 +1,18 @@
 import re
 import sys
-
+import os
 import markdown
 from beem import Hive
 from beem.account import Account
 from beem.comment import Comment
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 
-from config import HIVE_NODE
+# Load config
+load_dotenv()
+HIVE_NODE = os.getenv("HIVE_NODE")
 
 hive = Hive(nodes=HIVE_NODE)
-
 
 IMAGE_PROXY = "https://images.hive.blog/400x400/"
 
@@ -40,11 +42,6 @@ def strip(text):
 
 
 def get_comment_and_replies(authorperm):
-    # Connect to the hive blockchain
-
-    # Extract author and permlink from authorperm
-    author, permlink = authorperm.split("/")
-
     return Comment(authorperm, hive=hive)
 
 
@@ -58,7 +55,7 @@ def lookup_edits(authorperm):
     snap_range = snap.history(
         start=data["created"], stop=data["updated"], only_ops=["comment"]
     )
-    data["edits"] = []  # Add this line to initialize the edits list
+    data["edits"] = []
 
     for x in snap_range:
         if x["permlink"] == comment["permlink"]:
@@ -75,5 +72,6 @@ def lookup_edits(authorperm):
 
 
 if __name__ == "__main__":
-    authorperm = sys.argv[1]
-    print(lookup_edits(authorperm))
+    if len(sys.argv) > 1:
+        authorperm = sys.argv[1]
+        print(lookup_edits(authorperm))

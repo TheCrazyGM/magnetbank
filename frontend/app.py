@@ -1,14 +1,27 @@
-import random
 import re
 import urllib.parse
+import os
+import sys
 
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, g
 from flask_paginate import Pagination, get_page_parameter
+from sqlalchemy import or_, desc
 
-from config import ADMIN, HIVE_NODE, collection, settings
+# Add parent directory to path to import utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.database import get_db_engine, get_session, Torrent, Setting
 from utils.helpers import generate_magnet_link, update_announce_urls
+
+# Load configuration from environment
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ADMIN = os.getenv("ADMIN_ACCOUNT")
+HIVE_NODE = os.getenv("HIVE_NODE")
+DB_PATH = os.getenv("SQLITE_DB", "magnetbank.db")
 
 # Create a scheduler instance
 scheduler = BackgroundScheduler()
@@ -16,73 +29,78 @@ scheduler = BackgroundScheduler()
 
 # Define a function that wraps `update_announce_urls`
 def update_announce_urls_job():
-    update_announce_urls()
+    # Note: update_announce_urls might need refactoring too if it uses mongo
+    # For now, let's keep it as is or handle it in helpers.py
+    try:
+        update_announce_urls()
+    except Exception as e:
+        print(f"Error updating announce URLs: {e}")
 
 
 # Run the job once on start
 update_announce_urls_job()
 
-# Schedule the job to run every hour
+# Schedule the job to run every day at 2am
 scheduler.add_job(update_announce_urls_job, "cron", hour=2)
-# Start the scheduler
 scheduler.start()
 
 # Create Flask app instance
 app = Flask("magnetbank")
+
+# Database setup
+engine = get_db_engine(DB_PATH)
+
+
+@app.before_request
+def before_request():
+    g.db = get_session(engine)
+
+
+@app.teardown_request
+def teardown_request(exception=None):
+    db = getattr(g, "db", None)
+    if db is not None:
+        db.close()
 
 
 # Set number of torrents to display per page
 per_page = 99
 
 
-# Define route for homepage and category pages
 @app.route("/")
 @app.route("/category/<category>")
 def index(category=None):
-    """
-    Render the homepage or category page with a list of torrents.
-
-    Args:
-    ----
-    category (str): The category of torrents to display.
-
-    Returns:
-    -------
-    Rendered HTML template with list of torrents.
-    """
-    # Get current page number from query parameters
     page = request.args.get(get_page_parameter(), type=int, default=1)
 
-    # Define query to filter torrents by category and search query
-    query = {"category": {"$exists": True, "$ne": ""}}
+    query = g.db.query(Torrent)
+
     if category:
-        query["category"] = category.upper()
+        query = query.filter(Torrent.category == category.upper())
+
     if q := request.args.get("q", ""):
-        query["$or"] = [
-            {"hash": {"$regex": q, "$options": "i"}},
-            {"file_name": {"$regex": q, "$options": "i"}},
-            {"submitted_by": {"$regex": q, "$options": "i"}},
-        ]
+        search_filter = or_(
+            Torrent.hash.ilike(f"%{q}%"),
+            Torrent.file_name.ilike(f"%{q}%"),
+            Torrent.submitted_by.ilike(f"%{q}%"),
+        )
+        query = query.filter(search_filter)
 
-    # Get total number of torrents matching the query
-    total_torrents = collection.count_documents(query)
+    total_torrents = query.count()
 
-    # Create pagination object
     pagination = Pagination(
         page=page, total=total_torrents, per_page=per_page, css_framework="bootstrap5"
     )
 
-    # Get cursor to iterate over torrents matching the query
-    torrents_cursor = collection.find(query).sort([("timestamp", -1), ("hash", 1)])
-    torrents_cursor = torrents_cursor.skip((page - 1) * per_page).limit(per_page)
+    torrents_objs = (
+        query.order_by(desc(Torrent.timestamp), Torrent.hash)
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .all()
+    )
 
-    # Convert cursor to list of dictionaries
-    torrents = list(torrents_cursor)
-
-    # Set header for page
+    torrents = [t.to_dict() for t in torrents_objs]
     header = f"{category.upper()} Torrents" if category else "All Torrents"
 
-    # Render HTML template with list of torrents and pagination
     return render_template(
         "list.html", torrents=torrents, pagination=pagination, header=header
     )
@@ -90,50 +108,40 @@ def index(category=None):
 
 @app.route("/category/<category>/<filename>")
 def serve_torrent(category, filename):
-    """
-    Serve the torrent file with the given filename in the specified category.
-    """
-    # Define query to find torrent with matching category and filename
-    query = {
-        "category": category.upper(),
-        "$or": [{"file_name": filename}, {"hash": filename}],
-    }
-    # Find the torrent in the database
-    torrent = collection.find_one(query, {"_id": False})
+    torrent_obj = (
+        g.db.query(Torrent)
+        .filter(
+            Torrent.category == category.upper(),
+            or_(Torrent.file_name == filename, Torrent.hash == filename),
+        )
+        .first()
+    )
 
-    # Render HTML template with torrent details
+    torrent = torrent_obj.to_dict() if torrent_obj else None
     return render_template("details.html", torrent=torrent)
 
 
 @app.route("/user/<username>")
 def serve_user(username):
-    """
-    Serve the torrent files with the given username in all categories.
-    """
     page = request.args.get(get_page_parameter(), type=int, default=1)
 
-    # Create pagination object
-    # Define query to find torrent with matching category and filename
-    query = {"submitted_by": username}
-    # Get total number of torrents matching the query
-    total_torrents = collection.count_documents(query)
+    query = g.db.query(Torrent).filter(Torrent.submitted_by == username)
+    total_torrents = query.count()
 
-    # Create pagination object
     pagination = Pagination(
         page=page, total=total_torrents, per_page=per_page, css_framework="bootstrap5"
     )
 
-    # Get cursor to iterate over torrents matching the query
-    torrents_cursor = collection.find(query).sort([("timestamp", -1), ("hash", 1)])
-    torrents_cursor = torrents_cursor.skip((page - 1) * per_page).limit(per_page)
+    torrents_objs = (
+        query.order_by(desc(Torrent.timestamp), Torrent.hash)
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .all()
+    )
 
-    # Convert cursor to list of dictionaries
-    torrents = list(torrents_cursor)
-
-    # Set header for page
+    torrents = [t.to_dict() for t in torrents_objs]
     header = f"{username}'s Profile"
 
-    # Render HTML template with list of torrents and pagination
     return render_template(
         "user.html",
         torrents=torrents,
@@ -144,65 +152,45 @@ def serve_user(username):
     )
 
 
-# Define route for adding a new torrent
 @app.route("/add")
 def add(category=None):
-    """
-    Render the add torrent page with a form to submit a magnet link.
-
-    Args:
-    ----
-    category (str): The category of the torrent being added.
-
-    Returns:
-    -------
-    Rendered HTML template with form to submit magnet link.
-    """
-    # Get magnet link and category from query parameters
     magnet = request.args.get("magnet")
     if magnet is not None:
         magnet = urllib.parse.unquote(magnet)
     category = request.args.get("category")
 
-    # Validate magnet link and extract metadata
+    message = "Please add a valid magnet link"
+    torrent_json = None
+
     if magnet:
         if not re.match(r"magnet:\?xt=urn:btih:[a-fA-F0-9]{40}&", magnet):
             message = "Invalid magnet link"
-            torrent_json = None
         else:
             magnet_parts = magnet.split("&")
-            info_hash = magnet_parts[0].split(":")[3]
+            info_hash = magnet_parts[0].split(":")[3].upper()
             file_name = urllib.parse.unquote(magnet_parts[1].split("=")[1])
-            if announce_urls := [
-                url.split("=")[1] for url in magnet_parts if url.startswith("tr=")
-            ]:
-                random_announce_url = random.choice(announce_urls)
-                random_announce_url = (
-                    "http://tracker.openbittorrent.com:80/announce"
-                    if random_announce_url == "None"
-                    else random_announce_url
-                )
-            else:
-                random_announce_url = "http://tracker.openbittorrent.com:80/announce"
-            torrent_metadata = {
-                "announce_url": random_announce_url,
-                "file_name": file_name,
-                "hash": info_hash.upper(),
-            }
 
-            # Check if torrent already exists in database
-            existing_torrent = collection.find_one({"hash": info_hash})
-            if existing_torrent:
+            # Simple metadata extraction
+            announce_url = "http://tracker.openbittorrent.com:80/announce"
+            for part in magnet_parts:
+                if part.startswith("tr="):
+                    url = part.split("=")[1]
+                    if url and url != "None":
+                        announce_url = url
+                        break
+
+            # Check if torrent already exists
+            existing = g.db.query(Torrent).filter_by(hash=info_hash).first()
+            if existing:
                 message = "Error: Torrent already exists in the database."
-                torrent_json = None
             else:
                 message = "Magnet link appears valid."
-                torrent_json = dict(torrent_metadata)
-    else:
-        message = "Please add a valid magnet link"
-        torrent_json = None
+                torrent_json = {
+                    "announce_url": announce_url,
+                    "file_name": file_name,
+                    "hash": info_hash,
+                }
 
-    # Render HTML template with form and validation message
     return render_template(
         "add.html",
         magnet=magnet,
@@ -212,25 +200,11 @@ def add(category=None):
     )
 
 
-# Define route for converting a torrent file to a magnet link
 @app.route("/convert", methods=["POST", "GET"])
 def convert(uploaded_file=None):
-    """
-    Render the convert torrent page with a form to upload a torrent file and generate a magnet link.
-
-    Args:
-    ----
-    uploaded_file (FileStorage): The uploaded torrent file.
-
-    Returns:
-    -------
-    Rendered HTML template with form to upload torrent file and generated magnet link.
-    """
-    # Handle form submission
     if request.method == "POST":
         uploaded_file = request.files["torrent"]
 
-    # Validate uploaded file and generate magnet link
     if (
         not uploaded_file
         or uploaded_file.filename == ""
@@ -241,12 +215,12 @@ def convert(uploaded_file=None):
     else:
         torrent_data = uploaded_file.read()
         magnet_link = generate_magnet_link(torrent_data)
-        if magnet_link is None:
-            message = "Failed to generate magnet link"
-        else:
-            message = "Magnet link generated successfully"
+        message = (
+            "Magnet link generated successfully"
+            if magnet_link
+            else "Failed to generate magnet link"
+        )
 
-    # Render HTML template with form and validation message
     return render_template(
         "convert.html",
         msg=message,
@@ -254,36 +228,37 @@ def convert(uploaded_file=None):
     )
 
 
-# Define route for about page
 @app.route("/about")
 def about():
-    """
-    Render the about page with information about the application.
+    total_torrents = g.db.query(Torrent).count()
 
-    Returns
-    -------
-    Rendered HTML template with information about the application.
-    """
-    # Get total number of torrents in database
-    total_torrents = collection.count_documents({})
+    # Get last block from settings
+    last_block_setting = (
+        g.db.query(Setting).filter_by(id="info", key="last_block").first()
+    )
+    latest_info = (
+        {"last_block": int(last_block_setting.value)}
+        if last_block_setting
+        else {"last_block": "Unknown"}
+    )
 
-    # Get latest information from settings collection
-    latest_info = settings.find_one({"id": "info"})
+    # Get Hive head block
+    head_block_number = "Unknown"
+    try:
+        response = requests.post(
+            HIVE_NODE,
+            json={
+                "jsonrpc": "2.0",
+                "method": "condenser_api.get_dynamic_global_properties",
+                "params": [],
+                "id": 1,
+            },
+            timeout=5,
+        )
+        head_block_number = response.json()["result"]["head_block_number"]
+    except Exception:
+        pass
 
-    # Get current head block number from Hive blockchain API
-    url = HIVE_NODE
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "jsonrpc": "2.0",
-        "method": "condenser_api.get_dynamic_global_properties",
-        "params": [],
-        "id": 1,
-    }
-    response = requests.post(url, headers=headers, json=data, timeout=30)
-    json_data = response.json()
-    head_block_number = json_data["result"]["head_block_number"]
-
-    # Render HTML template with information about the application
     return render_template(
         "about.html",
         total_torrents=total_torrents,
@@ -294,121 +269,55 @@ def about():
 
 @app.route("/admin")
 def admin():
-    """
-    Render the admin page with access to manage the application.
-
-    Returns
-    -------
-    Rendered HTML template with access to manage the application.
-    """
-    # Render HTML template with information about the application
     return render_template("admin.html", admin=ADMIN)
 
 
-# Define API routes for exporting torrent data
+# API routes
 @app.route("/api/json/<q>")
 def export_json(q=None):
-    """
-    Return a JSON response with a list of torrents matching the search query.
+    results = g.db.query(Torrent).filter(Torrent.file_name.ilike(f"%{q}%")).all()
+    return jsonify([t.to_dict() for t in results])
 
-    Args:
-    ----
-    q (str): The search query.
-
-    Returns:
-    -------
-    JSON response with a list of torrents matching the search query.
-    """
-    torrent_list = list(
-        collection.find({"file_name": {"$regex": q, "$options": "i"}}, {"_id": False})
-    )
-    return jsonify(torrent_list)
 
 @app.route("/api/hash/<q>")
 def export_hash(q=None):
-    """
-    Return a JSON response with a list of torrents matching the hash.
-
-    Args:
-    ----
-    q (str): The hash of the torrent.
-
-    Returns:
-    -------
-    JSON response with a list of torrents matching the hash.
-    """
-    torrent_list = list(collection.find({"hash": q}, {"_id": False}))
-    return jsonify(torrent_list)
+    results = g.db.query(Torrent).filter(Torrent.hash == q.upper()).all()
+    return jsonify([t.to_dict() for t in results])
 
 
 @app.route("/api/user/<q>")
 def export_user(q=None):
-    """
-    Return a JSON response with a list of torrents submitted by the user.
-
-    Args:
-    ----
-    q (str): The username of the user.
-
-    Returns:
-    -------
-    JSON response with a list of torrents submitted by the user.
-    """
-    torrent_list = list(collection.find({"submitted_by": q}, {"_id": False}))
-    return jsonify(torrent_list)
+    results = g.db.query(Torrent).filter(Torrent.submitted_by == q).all()
+    return jsonify([t.to_dict() for t in results])
 
 
 @app.route("/api/generate/<q>")
 def generate_torrent(q=None):
-    """
-    Generate a list of torrents based on the search query.
-
-    Args:
-    ----
-    q (str): The search query.
-
-    Returns:
-    -------
-    A JSON response with a list of torrents matching the search query.
-    """
-
-    torrent_list = list(
-        collection.find(
-            {
-                "$or": [
-                    {"hash": {"$regex": q, "$options": "i"}},
-                    {"file_name": {"$regex": q, "$options": "i"}},
-                    {"submitted_by": {"$regex": q, "$options": "i"}},
-                ]
-            },
-            {"_id": False},
-        )
+    search_filter = or_(
+        Torrent.hash.ilike(f"%{q}%"),
+        Torrent.file_name.ilike(f"%{q}%"),
+        Torrent.submitted_by.ilike(f"%{q}%"),
     )
+    results = g.db.query(Torrent).filter(search_filter).all()
 
     json_data = []
-    for torrent in torrent_list:
+    for torrent in results:
         magnet_link = (
-            f"magnet:?xt=urn:btih:{torrent['hash']}"
-            f"&dn={torrent['file_name']}"
-            f"&tr={torrent['announce_url']}"
+            f"magnet:?xt=urn:btih:{torrent.hash}"
+            f"&dn={torrent.file_name}"
+            f"&tr={torrent.announce_url}"
         )
-        json_data.append(
-            {
-                "magnet_link": magnet_link,
-            }
-        )
+        json_data.append({"magnet_link": magnet_link})
     return jsonify(json_data)
 
 
 @app.route("/api/announce_urls")
-def announce_urls():
-    """
-    Return a JSON response with a list of announce URLs.
-    """
-    announce_list = settings.find_one({"id": "announce_list"})
-    return jsonify(announce_list["announce_urls"])
+def announce_urls_api():
+    # Fetch all announce URLs from settings
+    results = g.db.query(Setting).filter_by(id="announce_list").all()
+    urls = [s.value for s in results]
+    return jsonify(urls)
 
 
-# Run Flask app
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

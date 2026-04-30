@@ -28,4 +28,3 @@ venv: requirements.txt  ## Build the virtual environment
 	$(pip) install -U pip setuptools wheel build
 	$(pip) install -U -r requirements.txt
 	touch venv
-
