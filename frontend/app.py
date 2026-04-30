@@ -237,15 +237,18 @@ def convert(uploaded_file=None):
 def about():
     total_torrents = g.db.query(Torrent).count()
 
-    # Get last block from settings
-    last_block_setting = (
-        g.db.query(Setting).filter_by(id="info", key="last_block").first()
-    )
-    latest_info = (
-        {"last_block": int(last_block_setting.value)}
-        if last_block_setting
-        else {"last_block": "Unknown"}
-    )
+    # Get all info settings
+    info_settings = g.db.query(Setting).filter_by(id="info").all()
+    latest_info = {
+        s.key: (int(s.value) if s.value.isdigit() else s.value) for s in info_settings
+    }
+
+    if "last_block" not in latest_info:
+        latest_info["last_block"] = "Unknown"
+    if "genisys" not in latest_info:
+        latest_info["genisys"] = (
+            0  # Default to 0 to avoid division by zero in template if missing
+        )
 
     # Get Hive head block
     head_block_number = "Unknown"
@@ -319,9 +322,12 @@ def generate_torrent(q=None):
 @app.route("/api/announce_urls")
 def announce_urls_api():
     # Fetch all announce URLs from settings
-    results = g.db.query(Setting).filter_by(id="announce_list").all()
-    urls = [s.value for s in results]
-    return jsonify(urls)
+    result = g.db.query(Setting).filter_by(id="announce_list", key="urls").first()
+    if result:
+        import json
+
+        return jsonify(json.loads(result.value))
+    return jsonify([])
 
 
 if __name__ == "__main__":
