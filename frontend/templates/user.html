@@ -1,14 +1,62 @@
-{% extends "base.html" %} {% block content %}
-<h1 class="text-center">{{ header }}</h1>
-<hr />
-<div class="container">
-  <p class="text-center">
-    <b>Hive Account</b>:
-    <a href="https://peakd.com/@{{username}}"
-      ><i class="cf cf-hive"></i> {{username}}</a
-    >
-  </p>
-</div>
-<hr />
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-5">
+        <div class="row mb-5 align-items-end">
+            <div class="col-md-8">
+                <h1 class="text-neon display-5 mb-3">USER PROFILE: {{ username }}</h1>
+                <p class="text-dim mb-0">
+                    <i class="cf cf-hive"></i> HIVE ACCOUNT:
+                    <a href="https://peakd.com/@{{username}}" target="_blank" class="text-neon">@{{username}}</a>
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <div class="stat-box text-start d-inline-block px-4 py-2" style="min-width: 200px;">
+                    <label>ENTRIES COMMITTED</label>
+                    <div class="stat-value" style="font-size: 1.5rem;">{{ total_torrents }}</div>
+                </div>
+            </div>
+        </div>
 
-{% include "torrents.html" %} {% endblock %}
+        <div class="header-line mb-5"></div>
+
+        <div class="row g-4">
+            {% for torrent in torrents %}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="torrent-card d-flex flex-column h-100">
+                        <div class="card-header-accent"></div>
+                        <div class="p-4 flex-grow-1">
+                            <a href="{{ url_for('serve_torrent', category=torrent.category, filename=torrent.hash) }}" class="torrent-title mb-3">
+                                {{ torrent.file_name }}
+                            </a>
+                            <div class="torrent-meta-grid">
+                                <div class="meta-item">
+                                    <label>CAT</label>
+                                    <span>{{ torrent.category }}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <label>BLOCK</label>
+                                    <a href="https://hivehub.dev/b/{{ torrent.block_number }}" target="_blank">#{{ torrent.block_number }}</a>
+                                </div>
+                                <div class="meta-item w-100">
+                                    <label>DATE</label>
+                                    <span>{{ torrent.timestamp }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 pt-0 mt-auto">
+                            <div class="d-grid">
+                                <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}" class="btn-neon">
+                                    <i class="la la-magnet"></i> DOWNLOAD
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-center mt-5 mb-5">
+            {{ pagination.links }}
+        </div>
+    </div>
+{% endblock %}

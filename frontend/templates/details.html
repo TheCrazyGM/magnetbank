@@ -1,46 +1,64 @@
-{% extends "base.html" %} {% block content %}
-<div class="container">
-  <h1 class="text-center">Magnet Details</h1>
-  <hr />
-  <div class="row">
-    <div class="col-auto offset-md-3">
-      <ul class="list-group">
-        <li class="list-group-item">
-          <b>File Name</b>: {{ torrent.file_name | truncate (48, True) }}
-        </li>
-        <li class="list-group-item">
-          <b>Hash:</b>
-          <a href="/category/{{torrent.category}}/{{torrent.hash}}"
-            >{{ torrent.hash|upper }}</a
-          >
-        </li>
-        <li class="list-group-item">
-          <b>Announce URL</b>: {{ torrent.announce_url }}
-        </li>
-        <li class="list-group-item"><b>Category:</b> {{ torrent.category }}</li>
-        <li class="list-group-item">
-          <b>Timestamp</b>: {{ torrent.timestamp }}
-        </li>
-        <li class="list-group-item">
-          <b>Submitted By</b>:
-          <a href="/user/{{ torrent.submitted_by }}">
-            {{torrent.submitted_by }}</a
-          >
-        </li>
-        <li class="list-group-item">
-          <b>Block Number</b>:
-          <a href="https://hivehub.dev/b/{{ torrent.block_number }}"
-            >{{torrent.block_number}}</a
-          >
-        </li>
-      </ul>
-      <a
-        href="magnet:?xt=urn:btih:{{torrent.hash}}&dn={{torrent.file_name|urlencode}}&tr={{torrent.announce_url|urlencode}}"
-        class="btn btn-outline-success mt-3"
-        ><i class="las la-magnet"></i> Magnet Link</a
-      >
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-5">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="text-neon display-4 mb-3">MAGNETIC SCAN: DETAILS</h1>
+                <div class="header-line mx-auto"></div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="status-panel p-4 p-md-5">
+                    <h2 class="text-neon mb-4">{{ torrent.file_name }}</h2>
+
+                    <div class="torrent-meta-grid mb-5">
+                        <div class="meta-item">
+                            <label>HASH</label>
+                            <code class="text-neon">{{ torrent.hash|upper }}</code>
+                        </div>
+                        <div class="meta-item">
+                            <label>CATEGORY</label>
+                            <span>{{ torrent.category }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>SUBMITTED BY</label>
+                            <a href="{{ url_for('serve_user', username=torrent.submitted_by) }}">{{ torrent.submitted_by }}</a>
+                        </div>
+                        <div class="meta-item">
+                            <label>TIMESTAMP</label>
+                            <span>{{ torrent.timestamp }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>BLOCK HEIGHT</label>
+                            <a href="https://hivehub.dev/b/{{ torrent.block_number }}" target="_blank">#{{ torrent.block_number }}</a>
+                        </div>
+                        <div class="meta-item w-100">
+                            <label>ANNOUNCE URL</label>
+                            <span class="small">{{ torrent.announce_url }}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}" class="btn-neon p-3 fs-5">
+                            <i class="la la-magnet"></i> INITIALIZE MAGNET LINK
+                        </a>
+                        <a href="{{ url_for('index') }}" class="btn-dim text-center py-2 small">RETURN TO DATABASE</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-<script src="/static/js/torrents.js"></script>
+
+    <style>
+        .btn-dim {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .btn-dim:hover {
+            color: var(--neon-green);
+        }
+    </style>
 {% endblock %}

@@ -13,9 +13,9 @@ body {
   color: var(--text-main);
   font-family: "Oxygen Mono", monospace;
   background-image:
-    radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.05) 0%, transparent 50%),
-    linear-gradient(rgba(57, 255, 20, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(57, 255, 20, 0.02) 1px, transparent 1px);
+  radial-gradient(circle at 50% 50%, rgba(57, 255, 20, 0.05) 0%, transparent 50%),
+  linear-gradient(rgba(57, 255, 20, 0.02) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(57, 255, 20, 0.02) 1px, transparent 1px);
   background-size: 100% 100%, 40px 40px, 40px 40px;
   min-height: 100vh;
 }
