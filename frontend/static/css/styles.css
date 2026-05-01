@@ -66,17 +66,32 @@ h1, h2, h3, .navbar-brand, .nav-link, .btn-neon, .torrent-title {
   text-shadow: 0 0 10px var(--neon-green-glow);
 }
 
-/* Search Form */
-.search-form .form-control {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-color);
-  color: var(--neon-green);
+/* Search Form & Form Controls */
+.form-control, .form-select {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-main) !important;
   border-radius: 2px;
   font-family: "Oxygen Mono", monospace;
+  transition: all 0.3s ease;
 }
 
-.search-form .form-control::placeholder {
-  color: rgba(57, 255, 20, 0.3);
+.form-control:focus, .form-select:focus {
+  background: rgba(0, 0, 0, 0.6) !important;
+  border-color: var(--neon-green) !important;
+  box-shadow: 0 0 15px var(--neon-green-glow) !important;
+  color: var(--neon-green) !important;
+  text-shadow: none !important;
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: rgba(57, 255, 20, 0.2);
+}
+
+.text-neon-input {
+  color: var(--neon-green) !important;
+  text-shadow: none !important;
 }
 
 /* Torrent Card Grid */

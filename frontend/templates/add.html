@@ -12,7 +12,7 @@
             <div class="col-lg-8">
                 {% if msg %}
                     <div class="status-panel p-3 mb-4 {{ 'border-success' if torrent_json else 'border-danger' }}">
-                        <span class="{{ 'text-neon' if torrent_json else 'text-danger' }}">
+                        <span class="{{ 'text-neon-input' if torrent_json else 'text-danger' }}">
                             <i class="la {{ 'la-check-circle' if torrent_json else 'la-exclamation-triangle' }}"></i>
                             {{ msg }}
                         </span>
@@ -26,7 +26,7 @@
                                 <label for="magnet" class="form-label text-dim small">MAGNET URI</label>
                                 <input
                                     type="text"
-                                    class="form-control bg-dark border-secondary text-neon"
+                                    class="form-control bg-dark border-secondary text-neon-input"
                                     id="magnet"
                                     name="magnet"
                                     placeholder="magnet:?xt=urn:btih:..."
@@ -38,7 +38,7 @@
                                 <div class="col-md-8">
                                     <label for="category" class="form-label text-dim small">CLASSIFICATION</label>
                                     <select
-                                        class="form-select bg-dark border-secondary text-neon"
+                                        class="form-select bg-dark border-secondary text-neon-input"
                                         id="category"
                                         name="category"
                                         required
@@ -76,7 +76,7 @@
                                 <label for="custom_username" class="text-dim small">HIVE USERNAME</label>
                                 <input
                                     type="text"
-                                    class="form-control bg-dark border-secondary text-neon"
+                                    class="form-control bg-dark border-secondary text-neon-input"
                                     placeholder="username"
                                     id="custom_username"
                                     value=""

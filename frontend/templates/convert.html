@@ -12,7 +12,7 @@
             <div class="col-lg-8">
                 {% if msg %}
                     <div class="status-panel p-3 mb-4 {{ 'border-success' if magnet else 'border-danger' }}">
-                        <span class="{{ 'text-neon' if magnet else 'text-danger' }}">
+                        <span class="{{ 'text-neon-input' if magnet else 'text-danger' }}">
                             <i class="la {{ 'la-check-circle' if magnet else 'la-exclamation-triangle' }}"></i>
                             {{ msg }}
                         </span>
@@ -31,7 +31,7 @@
                                 <label for="torrent" class="form-label text-dim small">UPLOAD .TORRENT FILE</label>
                                 <input
                                     type="file"
-                                    class="form-control bg-dark border-secondary text-neon"
+                                    class="form-control bg-dark border-secondary text-neon-input"
                                     id="torrent"
                                     name="torrent"
                                     accept=".torrent"
@@ -52,7 +52,7 @@
                                 <label for="magnet" class="form-label text-dim small">MAGNET LINK</label>
                                 <input
                                     type="text"
-                                    class="form-control bg-dark border-secondary text-neon"
+                                    class="form-control bg-dark border-secondary text-neon-input"
                                     id="magnet"
                                     name="magnet"
                                     value="{{ magnet }}"
@@ -63,7 +63,7 @@
                                 <div class="col-md-8">
                                     <label for="category" class="form-label text-dim small">CLASSIFICATION</label>
                                     <select
-                                        class="form-select bg-dark border-secondary text-neon"
+                                        class="form-select bg-dark border-secondary text-neon-input"
                                         id="category"
                                         name="category"
                                         required
