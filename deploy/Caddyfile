@@ -1,0 +1,18 @@
+magnets.ecoinstats.net {
+    # Reverse proxy to the Gunicorn service
+    reverse_proxy localhost:8080
+
+    # Optional: Serve static files directly via Caddy for better performance
+    handle_path /static/* {
+        root * /home/thecrazygm/github/magnetbank/frontend/static
+        file_server
+    }
+
+    # Enable compression
+    encode zstd gzip
+
+    # Logging
+    log {
+        output file /var/log/caddy/magnetbank.log
+    }
+}
