@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 # Add parent directory to path to import utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.database import Setting, Torrent, get_db_engine, get_session
+from utils.helpers import is_safe_url, is_valid_info_hash, sanitize_input
 
 # Load environment variables
 load_dotenv()
@@ -78,27 +79,69 @@ class MagnetBankNode:
             key in json_data
             for key in ["hash", "file_name", "category", "announce_url"]
         ):
-            info_hash = json_data["hash"].upper()
+            raw_hash = str(json_data["hash"]).upper().strip()
+            raw_name = str(json_data["file_name"])
+            raw_cat = str(json_data["category"]).upper().strip()
+            raw_announce = str(json_data["announce_url"])
+            raw_source = json_data.get("exact_source")
 
-            existing = session.query(Torrent).filter_by(hash=info_hash).first()
+            # --- SECURITY & VALIDATION CHECKS ---
+
+            # 1. Validate Info Hash Format
+            if not is_valid_info_hash(raw_hash):
+                logger.warning(
+                    f"REJECTED: Invalid hash format '{raw_hash}' from @{submitted_by}"
+                )
+                return
+
+            # 2. Sanitize and Limit Filename (XSS Protection + DB sanity)
+            file_name = sanitize_input(raw_name, max_length=255)
+            if not file_name:
+                logger.warning(
+                    f"REJECTED: Empty or malicious filename from @{submitted_by}"
+                )
+                return
+
+            # 3. Validate and Sanitize Category
+            allowed_cats = ["VIDEO", "AUDIO", "APP", "TEXT", "OTHER"]
+            category = raw_cat if raw_cat in allowed_cats else "OTHER"
+
+            # 4. Validate Announce URL Scheme
+            if not is_safe_url(raw_announce):
+                logger.warning(
+                    f"REJECTED: Unsafe announce URL '{raw_announce}' from @{submitted_by}"
+                )
+                return
+
+            # 5. Validate Exact Source (if present)
+            exact_source = None
+            if raw_source:
+                if is_safe_url(raw_source, schemes=["http", "https"]):
+                    exact_source = raw_source
+                else:
+                    logger.warning(
+                        f"DROPPED: Unsafe source URL '{raw_source}' from @{submitted_by}"
+                    )
+
+            # --- DATA INTEGRITY ---
+
+            existing = session.query(Torrent).filter_by(hash=raw_hash).first()
             if not existing:
                 new_torrent = Torrent(
-                    hash=info_hash,
-                    file_name=json_data["file_name"],
-                    category=json_data["category"].upper(),
-                    announce_url=json_data["announce_url"],
-                    exact_source=json_data.get("exact_source"),
+                    hash=raw_hash,
+                    file_name=file_name,
+                    category=category,
+                    announce_url=raw_announce,
+                    exact_source=exact_source,
                     timestamp=timestamp,
                     submitted_by=submitted_by,
                     block_number=block_num,
                 )
                 session.add(new_torrent)
                 session.commit()
-                logger.info(
-                    f"ADDED: {info_hash} | {json_data['file_name']} by @{submitted_by}"
-                )
+                logger.info(f"ADDED: {raw_hash} | {file_name} by @{submitted_by}")
             else:
-                logger.debug(f"DUPLICATE: {info_hash} already in database.")
+                logger.debug(f"DUPLICATE: {raw_hash} already in database.")
 
         # Handle Admin Actions
         elif json_data.get("action") and submitted_by == ADMIN_ACCOUNT:

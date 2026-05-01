@@ -1,19 +1,25 @@
-import re
-import urllib.parse
-import os
-import sys
 import json
+import os
+import re
+import sys
+import urllib.parse
 
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, jsonify, render_template, request, g
+from flask import Flask, g, jsonify, render_template, request
 from flask_paginate import Pagination, get_page_parameter
-from sqlalchemy import or_, desc
+from sqlalchemy import desc, or_
 
 # Add parent directory to path to import utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.database import get_db_engine, get_session, Torrent, Setting
-from utils.helpers import generate_magnet_link, update_announce_urls
+from utils.database import Setting, Torrent, get_db_engine, get_session
+from utils.helpers import (
+    generate_magnet_link,
+    is_safe_url,
+    is_valid_info_hash,
+    sanitize_input,
+    update_announce_urls,
+)
 
 # Load configuration from environment
 from dotenv import load_dotenv
@@ -174,30 +180,34 @@ def add(category=None):
             magnet_parts = magnet.split("&")
             info_hash = magnet_parts[0].split(":")[3].upper()
 
-            file_name = "Unknown"
-            if len(magnet_parts) > 1 and magnet_parts[1].startswith("dn="):
-                file_name = urllib.parse.unquote(magnet_parts[1].split("=")[1])
-
-            # Simple metadata extraction
-            announce_url = "http://tracker.openbittorrent.com:80/announce"
-            for part in magnet_parts:
-                if part.startswith("tr="):
-                    url = part.split("=")[1]
-                    if url and url != "None":
-                        announce_url = url
-                        break
-
-            # Check if torrent already exists
-            existing = g.db.query(Torrent).filter_by(hash=info_hash).first()
-            if existing:
-                message = "Error: Torrent already exists in the database."
+            if not is_valid_info_hash(info_hash):
+                message = "Malformed info-hash detected."
             else:
-                message = "Magnet link appears valid."
-                torrent_json = {
-                    "announce_url": announce_url,
-                    "file_name": file_name,
-                    "hash": info_hash,
-                }
+                file_name = "Unknown"
+                if len(magnet_parts) > 1 and magnet_parts[1].startswith("dn="):
+                    raw_name = urllib.parse.unquote(magnet_parts[1].split("=")[1])
+                    file_name = sanitize_input(raw_name, max_length=255)
+
+                # Simple metadata extraction
+                announce_url = "http://tracker.openbittorrent.com:80/announce"
+                for part in magnet_parts:
+                    if part.startswith("tr="):
+                        url = urllib.parse.unquote(part.split("=")[1])
+                        if is_safe_url(url):
+                            announce_url = url
+                            break
+
+                # Check if torrent already exists
+                existing = g.db.query(Torrent).filter_by(hash=info_hash).first()
+                if existing:
+                    message = "Error: Torrent already exists in the database."
+                else:
+                    message = "Magnet link appears valid."
+                    torrent_json = {
+                        "announce_url": announce_url,
+                        "file_name": file_name,
+                        "hash": info_hash,
+                    }
 
     return render_template(
         "add.html",

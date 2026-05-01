@@ -1,4 +1,6 @@
 import hashlib
+import re
+import urllib.parse
 import bencode
 import requests
 import os
@@ -7,6 +9,44 @@ import sys
 # Add parent directory to path to import utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.database import get_db_engine, get_session, Setting
+
+
+def is_valid_info_hash(info_hash: str) -> bool:
+    """Check if the string is a valid v1 (40 hex) or v2 (32 base32) info hash."""
+    if not info_hash:
+        return False
+    # SHA-1 (Hex) - 40 chars
+    if re.match(r"^[a-fA-F0-9]{40}$", info_hash):
+        return True
+    # Base32 (BitTorrent v1) - 32 chars
+    if re.match(r"^[a-zA-Z2-7]{32}$", info_hash):
+        return True
+    return False
+
+
+def is_safe_url(url: str, allowed_schemes=None) -> bool:
+    """Validate that a URL is well-formed and uses an allowed scheme."""
+    if not url:
+        return False
+    if allowed_schemes is None:
+        allowed_schemes = ["http", "https", "udp", "ws", "wss"]
+    try:
+        parsed = urllib.parse.urlparse(url)
+        return parsed.scheme in allowed_schemes and bool(parsed.netloc)
+    except Exception:
+        return False
+
+
+def sanitize_input(text: str, max_length: int = 255) -> str:
+    """Remove HTML tags, control characters, and truncate text."""
+    if not text:
+        return ""
+    # Remove HTML tags using regex
+    clean = re.sub(r"<[^>]*?>", "", text)
+    # Remove non-printable characters (except basic whitespace)
+    clean = "".join(char for char in clean if char.isprintable() or char in "\n\r\t")
+    # Truncate
+    return clean[:max_length].strip()
 
 
 def generate_magnet_link(torrent_file):
