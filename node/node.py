@@ -146,10 +146,12 @@ class MagnetBankNode:
                         f"Scanning blocks: {last_block + 1} to {stop_block} (Head: {current_head})"
                     )
 
+                    # hive-nectar signature: __init__(self, starting_block_num, count=1000, ...)
+                    batch_count = stop_block - last_block
                     blocks = Blocks(
+                        last_block + 1,
+                        count=batch_count,
                         blockchain_instance=self.hive,
-                        start=last_block + 1,
-                        stop=stop_block,
                     )
 
                     with self.get_session() as session:
