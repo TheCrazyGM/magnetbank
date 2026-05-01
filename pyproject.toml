@@ -34,6 +34,7 @@ dependencies = [
   "werkzeug>=3.1.8",
   "websocket-client>=1.9.0",
   "hive-nectar>=0.2.15",
+  "gunicorn>=25.3.0",
 ]
 
 [dependency-groups]

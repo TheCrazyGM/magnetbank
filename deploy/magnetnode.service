@@ -1,0 +1,15 @@
+[Unit]
+Description=MagnetBank Node Worker
+After=network.target
+
+[Service]
+User=thecrazygm
+Group=thecrazygm
+WorkingDirectory=/home/thecrazygm/github/magnetbank
+# Use the uv-managed python in the root venv
+ExecStart=/home/thecrazygm/github/magnetbank/.venv/bin/python node/node.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

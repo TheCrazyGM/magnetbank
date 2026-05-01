@@ -1,0 +1,19 @@
+[Unit]
+Description=MagnetBank Frontend
+After=network.target
+
+[Service]
+User=thecrazygm
+Group=thecrazygm
+WorkingDirectory=/home/thecrazygm/github/magnetbank
+# Standard uv path for root venv
+ExecStart=/home/thecrazygm/github/magnetbank/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8080 \
+    --access-logfile - \
+    --error-logfile - \
+    "frontend.app:app"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
