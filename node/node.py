@@ -147,7 +147,9 @@ class MagnetBankNode:
                     )
 
                     blocks = Blocks(
-                        last_block + 1, stop_block, blockchain_instance=self.hive
+                        blockchain_instance=self.hive,
+                        start=last_block + 1,
+                        stop=stop_block,
                     )
 
                     with self.get_session() as session:
