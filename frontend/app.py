@@ -328,9 +328,12 @@ def generate_torrent(q=None):
     for torrent in results:
         magnet_link = (
             f"magnet:?xt=urn:btih:{torrent.hash}"
-            f"&dn={torrent.file_name}"
-            f"&tr={torrent.announce_url}"
+            f"&dn={urllib.parse.quote(torrent.file_name)}"
+            f"&tr={urllib.parse.quote(torrent.announce_url)}"
         )
+        if torrent.exact_source:
+            magnet_link += f"&xs={urllib.parse.quote(torrent.exact_source)}"
+
         json_data.append({"magnet_link": magnet_link})
     return jsonify(json_data)
 

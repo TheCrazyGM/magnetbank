@@ -29,12 +29,11 @@
                     </div>                </div>
                 <div class="p-4 pt-0 mt-auto">
                     <div class="d-grid">
-                        <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}" class="btn-neon">
+                        <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}{{ '&xs=' ~ torrent.exact_source | urlencode if torrent.exact_source else '' }}" class="btn-neon">
                             <i class="la la-magnet"></i> DOWNLOAD
                         </a>
                     </div>
-                </div>
-            </div>
+                </div>            </div>
         </div>
     {% endfor %}
 </div>

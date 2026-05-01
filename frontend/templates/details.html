@@ -46,12 +46,11 @@
                         {% endif %}
                     </div>
                     <div class="d-grid gap-3">
-                        <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}" class="btn-neon p-3 fs-5">
+                        <a href="magnet:?xt=urn:btih:{{ torrent.hash }}&dn={{ torrent.file_name | urlencode }}&tr={{ torrent.announce_url | urlencode }}{{ '&xs=' ~ torrent.exact_source | urlencode if torrent.exact_source else '' }}" class="btn-neon p-3 fs-5">
                             <i class="la la-magnet"></i> INITIALIZE MAGNET LINK
                         </a>
                         <a href="{{ url_for('index') }}" class="btn-dim text-center py-2 small">RETURN TO DATABASE</a>
-                    </div>
-                </div>
+                    </div>                </div>
             </div>
         </div>
     </div>
