@@ -10,12 +10,37 @@
 
         <div class="row g-5">
             <div class="col-lg-7">
-                <div class="status-panel p-4">
+                <div class="status-panel p-4 mb-5">
                     <h3 class="text-neon mb-4"><i class="la la-info-circle"></i> CORE MISSION</h3>
                     <div class="mission-text">
                         <p>At <span class="text-neon">MagnetBank</span>, we facilitate secure, decentralized access to torrent metadata via the Hive blockchain.</p>
                         <p>Our architecture is strictly <b>non-custodial</b>. We do not host files or magnet links. Instead, we dynamically reassemble metadata from blockchain entries, ensuring total transparency and resilience.</p>
                         <p>Every entry you see is a verified block on the Hive chain, processed by our global node network.</p>
+                    </div>
+                </div>
+
+                <div class="status-panel p-4">
+                    <h3 class="text-neon mb-4"><i class="la la-code"></i> DEVELOPER INTEGRATION</h3>
+                    <div class="mission-text">
+                        <p>Building a client or crawler? MagnetBank is designed for interoperability. You can broadcast or read metadata directly from the Hive blockchain using the <code>MagnetBank</code> custom_json ID.</p>
+
+                        <h5 class="text-dim small mb-3">PROTOCOL DATA STRUCTURE (New Entry)</h5>
+                        <div class="mb-4">
+                        <pre class="bg-dark p-3 border border-secondary text-neon small"><code>{
+  "file_name": "filename.mp4",
+  "hash": "INFOHASH",
+  "announce_url": "tracker_url",
+  "category": "VIDEO",
+  "exact_source": "https://url.to/torrent"
+}</code></pre>
+                        </div>
+
+                        <p class="small">Detailed documentation, SDKs, and the open-source node implementation are available in the official repository.</p>
+                        <div class="mt-4">
+                            <a href="https://github.com/TheCrazyGM/magnetbank" target="_blank" class="btn-neon px-4 py-2 small">
+                                <i class="la la-github"></i> ACCESS REPOSITORY
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,4 +97,88 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .status-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border-radius: 4px;
+        }
+
+        .header-line {
+            height: 2px;
+            width: 200px;
+            background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+        }
+
+        .mission-text p {
+            line-height: 1.8;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            padding: 1rem;
+            border-left: 3px solid var(--neon-green);
+        }
+
+        .stat-box label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-family: "Gugi", cursive;
+            font-size: 2rem;
+            color: var(--neon-green);
+        }
+
+        .table-terminal {
+            background: transparent !important;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+        }
+
+        .table-terminal th {
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dim);
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        .table-terminal td {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 12px 0;
+            vertical-align: middle;
+        }
+
+        .highlight-row td {
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        .progress-neon {
+            height: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 0;
+        }
+
+        .progress-neon .progress-bar {
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        pre code {
+            color: var(--neon-green) !important;
+        }
+    </style>
 {% endblock %}
