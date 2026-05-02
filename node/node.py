@@ -116,7 +116,7 @@ class MagnetBankNode:
             # 5. Validate Exact Source (if present)
             exact_source = None
             if raw_source:
-                if is_safe_url(raw_source, schemes=["http", "https"]):
+                if is_safe_url(raw_source, allowed_schemes=["http", "https"]):
                     exact_source = raw_source
                 else:
                     logger.warning(
